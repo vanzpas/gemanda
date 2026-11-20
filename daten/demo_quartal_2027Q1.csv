@@ -1,0 +1,321 @@
+offerte_id,bfs_nr,gemeindename,kanton,sprachregion,gemeindetyp,einwohner,produktlinie,quelle,verfahren,bestandskunde,kontakte_12m
+O10016,6628,Lancy,GE,Französisch,A,33377,Fiskal,Account Manager,offen,nein,0
+O10051,135,Kilchberg (ZH),ZH,Deutsch,A,8923,Campus,Partner oder Messe,Einladung,nein,1
+O10058,2857,Rickenbach (BL),BL,Deutsch,B,585,Fiskal,Account Manager,Einladung,nein,0
+O10076,306,Lyss,BE,Deutsch,A,15525,Fiskal,Partner oder Messe,offen,nein,0
+O10089,2497,Obergösgen,SO,Deutsch,A,2271,Schalter,Anfrage der Gemeinde,freihändig,ja,4
+O10107,2491,Hauenstein-Ifenthal,SO,Deutsch,B,308,Fiskal,Account Manager,freihändig,nein,0
+O10121,224,Pfungen,ZH,Deutsch,A,3900,Fiskal,Anfrage der Gemeinde,freihändig,ja,1
+O10122,929,Hilterfingen,BE,Deutsch,A,4057,Fiskal,Partner oder Messe,Einladung,nein,0
+O10126,1146,Wauwil,LU,Deutsch,C,2261,Schalter,Account Manager,freihändig,ja,0
+O10133,6623,Le Grand-Saconnex,GE,Französisch,A,12275,Schalter,Partner oder Messe,freihändig,nein,0
+O10135,1701,Baar,ZG,Deutsch,A,24617,Fiskal,Account Manager,Einladung,nein,1
+O10141,785,Meiringen,BE,Deutsch,D,4639,Schalter,Account Manager,freihändig,ja,2
+O10150,791,Boltigen,BE,Deutsch,D,1252,Schalter,Anfrage der Gemeinde,freihändig,ja,4
+O10153,2771,Oberwil (BL),BL,Deutsch,A,11221,Campus,Anfrage der Gemeinde,Einladung,ja,3
+O10165,3236,St. Margrethen,SG,Deutsch,A,5960,Fiskal,Anfrage der Gemeinde,Einladung,ja,5
+O10193,884,Toffen,BE,Deutsch,B,2526,Fiskal,Anfrage der Gemeinde,Einladung,nein,0
+O10197,5872,Le Chenit,VD,Französisch,A,4642,Fiskal,Partner oder Messe,freihändig,nein,0
+O10208,4791,Wuppenau,TG,Deutsch,C,1118,Fiskal,Anfrage der Gemeinde,Einladung,ja,1
+O10216,561,Adelboden,BE,Deutsch,D,3352,Fiskal,Anfrage der Gemeinde,freihändig,ja,5
+O10219,2766,Birsfelden,BL,Deutsch,A,10432,Fiskal,Account Manager,freihändig,ja,5
+O10222,2464,Lüsslingen-Nennigkofen,SO,Deutsch,B,1084,Fiskal,Account Manager,freihändig,ja,3
+O10226,3338,Schmerikon,SG,Deutsch,A,3766,Schalter,Partner oder Messe,freihändig,nein,0
+O10238,1059,Kriens,LU,Deutsch,A,27847,Fiskal,simap-Ausschreibung,offen,ja,2
+O10239,2303,St. Silvester,FR,Deutsch,B,971,Fiskal,Partner oder Messe,Einladung,ja,1
+O10240,843,Saanen,BE,Deutsch,A,6817,Fiskal,Partner oder Messe,Einladung,ja,3
+O10251,3721,Bonaduz,GR,Deutsch,A,3467,Fiskal,Account Manager,Einladung,ja,3
+O10257,159,Uetikon am See,ZH,Deutsch,A,6201,Fiskal,Partner oder Messe,offen,ja,1
+O10276,6806,Vendlincourt,JU,Französisch,B,559,Fiskal,Account Manager,freihändig,nein,0
+O10288,121,Wetzikon (ZH),ZH,Deutsch,A,24990,Schalter,Anfrage der Gemeinde,Einladung,nein,1
+O10297,2424,Herbetswil,SO,Deutsch,B,565,Campus,Anfrage der Gemeinde,freihändig,nein,0
+O10299,4094,Bözen,AG,Deutsch,B,804,Fiskal,Partner oder Messe,freihändig,nein,0
+O10306,4140,Oberkulm,AG,Deutsch,A,2725,Fiskal,Partner oder Messe,freihändig,nein,0
+O10308,2125,Bulle,FR,Französisch,A,23871,Fiskal,Account Manager,offen,nein,0
+O10373,2480,Seewen,SO,Deutsch,B,1003,Fiskal,Partner oder Messe,freihändig,nein,1
+O10418,6300,Zermatt,VS,Deutsch,D,5765,Schalter,Account Manager,freihändig,nein,1
+O10463,565,Kandersteg,BE,Deutsch,D,1281,Fiskal,Partner oder Messe,Einladung,nein,1
+O10469,4751,Rickenbach (TG),TG,Deutsch,A,2803,Campus,Anfrage der Gemeinde,Einladung,ja,4
+O10491,5048,Acquarossa,TI,Italienisch,D,1813,Schalter,Account Manager,freihändig,nein,0
+O10492,156,Meilen,ZH,Deutsch,A,14335,Schalter,Account Manager,freihändig,ja,1
+O10528,6605,Bardonnex,GE,Französisch,C,2277,Fiskal,Account Manager,Einladung,nein,1
+O10530,2500,Trimbach,SO,Deutsch,A,6595,Fiskal,Account Manager,freihändig,ja,0
+O10531,5589,Prilly,VD,Französisch,A,12413,Schalter,Partner oder Messe,freihändig,nein,0
+O10536,4062,Berikon,AG,Deutsch,A,4756,Campus,Account Manager,offen,nein,0
+O10537,4723,Braunau,TG,Deutsch,C,815,Campus,simap-Ausschreibung,offen,nein,0
+O10538,191,Dübendorf,ZH,Deutsch,A,29303,Fiskal,simap-Ausschreibung,offen,ja,1
+O10542,62,Kloten,ZH,Deutsch,A,20130,Schalter,Partner oder Messe,Einladung,nein,2
+O10552,1507,Hergiswil (NW),NW,Deutsch,D,5776,Fiskal,Account Manager,Einladung,nein,3
+O10557,5932,Ursins,VD,Französisch,B,225,Campus,Anfrage der Gemeinde,Einladung,nein,1
+O10589,6007,Naters,VS,Deutsch,D,10175,Fiskal,Anfrage der Gemeinde,freihändig,ja,1
+O10593,4416,Hefenhofen,TG,Deutsch,C,1210,Fiskal,Partner oder Messe,freihändig,ja,1
+O10610,2525,Kriegstetten,SO,Deutsch,A,1304,Fiskal,Account Manager,Einladung,nein,0
+O10612,2785,Duggingen,BL,Deutsch,A,1547,Fiskal,simap-Ausschreibung,offen,nein,0
+O10620,153,Hombrechtikon,ZH,Deutsch,A,8775,Schalter,Partner oder Messe,freihändig,nein,0
+O10640,248,Uitikon,ZH,Deutsch,A,4668,Fiskal,Account Manager,offen,ja,1
+O10650,1711,Zug,ZG,Deutsch,A,30618,Campus,simap-Ausschreibung,offen,nein,0
+O10670,219,Elsau,ZH,Deutsch,C,3647,Schalter,Anfrage der Gemeinde,freihändig,ja,2
+O10682,6452,Cressier (NE),NE,Französisch,A,1898,Campus,Account Manager,offen,nein,1
+O10712,1707,Risch,ZG,Deutsch,A,10990,Schalter,Anfrage der Gemeinde,freihändig,nein,1
+O10714,2408,Wolfwil,SO,Deutsch,A,2307,Campus,Account Manager,Einladung,nein,2
+O10715,903,Lauperswil,BE,Deutsch,B,2664,Schalter,Partner oder Messe,freihändig,ja,2
+O10721,2789,Nenzlingen,BL,Deutsch,B,455,Fiskal,Partner oder Messe,freihändig,ja,1
+O10733,1406,Sachseln,OW,Deutsch,A,5170,Schalter,Partner oder Messe,freihändig,ja,2
+O10751,4045,Wettingen,AG,Deutsch,A,20934,Campus,simap-Ausschreibung,offen,ja,3
+O10757,2772,Pfeffingen,BL,Deutsch,B,2369,Fiskal,Partner oder Messe,Einladung,ja,1
+O10763,2616,Fehren,SO,Deutsch,B,608,Fiskal,Partner oder Messe,freihändig,ja,6
+O10765,177,Pfäffikon,ZH,Deutsch,A,12164,Schalter,Account Manager,freihändig,ja,1
+O10777,3823,Soazza,GR,Italienisch,D,319,Fiskal,Anfrage der Gemeinde,Einladung,nein,0
+O10785,3661,Cazis,GR,Deutsch,A,2264,Schalter,Anfrage der Gemeinde,freihändig,ja,3
+O10790,157,Oetwil am See,ZH,Deutsch,A,4840,Campus,simap-Ausschreibung,offen,nein,0
+O10798,785,Meiringen,BE,Deutsch,D,4639,Schalter,Partner oder Messe,freihändig,ja,1
+O10799,2761,Aesch (BL),BL,Deutsch,A,10356,Schalter,Anfrage der Gemeinde,freihändig,nein,0
+O10808,2889,Lauwil,BL,Deutsch,B,315,Schalter,Partner oder Messe,freihändig,nein,0
+O10812,956,Rüegsau,BE,Deutsch,B,3224,Campus,Account Manager,Einladung,ja,4
+O10826,2829,Liestal,BL,Deutsch,A,14391,Schalter,Account Manager,freihändig,nein,3
+O10843,6616,Collonge-Bellerive,GE,Französisch,A,8299,Schalter,Account Manager,Einladung,nein,1
+O10844,407,Heimiswil,BE,Deutsch,B,1636,Fiskal,Anfrage der Gemeinde,freihändig,nein,0
+O10850,2550,Langendorf,SO,Deutsch,A,3806,Fiskal,Account Manager,Einladung,nein,3
+O10855,2408,Wolfwil,SO,Deutsch,A,2307,Campus,Partner oder Messe,Einladung,nein,0
+O10867,1366,Morschach,SZ,Deutsch,C,1148,Schalter,Partner oder Messe,freihändig,ja,2
+O10880,6155,Saint-Gingolph,VS,Französisch,D,967,Campus,Anfrage der Gemeinde,Einladung,nein,0
+O10886,4209,Seon,AG,Deutsch,A,5223,Schalter,Partner oder Messe,freihändig,ja,2
+O10905,1037,Rain,LU,Deutsch,C,2831,Fiskal,Anfrage der Gemeinde,Einladung,ja,0
+O10907,3238,Widnau,SG,Deutsch,A,9756,Fiskal,Partner oder Messe,Einladung,ja,1
+O10928,6217,Saint-Maurice,VS,Französisch,A,4556,Campus,Partner oder Messe,Einladung,nein,0
+O10932,3238,Widnau,SG,Deutsch,A,9756,Schalter,Account Manager,freihändig,ja,0
+O10944,6608,Carouge (GE),GE,Französisch,A,22621,Fiskal,simap-Ausschreibung,offen,nein,1
+O10954,4280,Oftringen,AG,Deutsch,A,14101,Campus,simap-Ausschreibung,offen,nein,1
+O10957,2275,Murten,FR,Deutsch,A,8259,Schalter,Account Manager,freihändig,ja,4
+O10958,3402,Flawil,SG,Deutsch,A,10425,Fiskal,simap-Ausschreibung,offen,nein,0
+O10973,4038,Obersiggenthal,AG,Deutsch,A,8628,Fiskal,Account Manager,offen,ja,1
+O10980,941,Thierachern,BE,Deutsch,B,2471,Schalter,Partner oder Messe,freihändig,nein,1
+O10990,4021,Baden,AG,Deutsch,A,19547,Campus,simap-Ausschreibung,offen,ja,0
+O10991,2762,Allschwil,BL,Deutsch,A,21090,Campus,simap-Ausschreibung,offen,ja,0
+O11006,2829,Liestal,BL,Deutsch,A,14391,Schalter,Partner oder Messe,Einladung,nein,0
+O11025,4003,Buchs (AG),AG,Deutsch,A,7971,Fiskal,Partner oder Messe,Einladung,nein,1
+O11026,4047,Würenlingen,AG,Deutsch,A,4768,Fiskal,Anfrage der Gemeinde,freihändig,ja,2
+O11029,6296,Törbel,VS,Deutsch,D,488,Fiskal,simap-Ausschreibung,offen,nein,1
+O11031,1341,Altendorf,SZ,Deutsch,A,7059,Schalter,Account Manager,freihändig,ja,3
+O11056,4204,Niederlenz,AG,Deutsch,A,4765,Schalter,Anfrage der Gemeinde,freihändig,nein,1
+O11059,4027,Fislisbach,AG,Deutsch,A,5552,Fiskal,Anfrage der Gemeinde,Einladung,nein,0
+O11063,246,Oetwil an der Limmat,ZH,Deutsch,A,2515,Schalter,Partner oder Messe,freihändig,nein,1
+O11069,957,Sumiswald,BE,Deutsch,B,5026,Campus,simap-Ausschreibung,offen,nein,0
+O11074,3619,Ilanz/Glion,GR,Deutsch,D,4757,Schalter,Anfrage der Gemeinde,freihändig,nein,0
+O11075,5202,Monteggio,TI,Italienisch,A,849,Fiskal,Partner oder Messe,freihändig,nein,0
+O11079,4006,Gränichen,AG,Deutsch,A,7994,Fiskal,Account Manager,Einladung,nein,0
+O11082,2768,Ettingen,BL,Deutsch,A,5354,Campus,Account Manager,Einladung,nein,1
+O11100,6297,Visp,VS,Deutsch,A,7978,Schalter,Account Manager,freihändig,ja,3
+O11101,1103,Sursee,LU,Deutsch,A,10195,Fiskal,Anfrage der Gemeinde,Einladung,ja,1
+O11104,2582,Rickenbach (SO),SO,Deutsch,A,1038,Campus,Account Manager,offen,nein,2
+O11115,3721,Bonaduz,GR,Deutsch,A,3467,Fiskal,Partner oder Messe,Einladung,ja,2
+O11130,6296,Törbel,VS,Deutsch,D,488,Campus,Account Manager,Einladung,nein,2
+O11157,4761,Sirnach,TG,Deutsch,A,7803,Fiskal,Anfrage der Gemeinde,Einladung,ja,2
+O11160,2309,Wünnewil-Flamatt,FR,Deutsch,A,5569,Fiskal,Partner oder Messe,freihändig,nein,2
+O11161,4696,Tägerwilen,TG,Deutsch,A,4762,Fiskal,Anfrage der Gemeinde,Einladung,nein,1
+O11162,1024,Emmen,LU,Deutsch,A,31043,Fiskal,simap-Ausschreibung,offen,nein,1
+O11170,544,Moosseedorf,BE,Deutsch,A,4130,Schalter,Account Manager,freihändig,nein,3
+O11180,3037,Walzenhausen,AR,Deutsch,A,2012,Fiskal,Partner oder Messe,Einladung,ja,3
+O11182,4254,Möhlin,AG,Deutsch,A,11047,Campus,Account Manager,offen,ja,3
+O11185,1052,Buchrain,LU,Deutsch,A,6361,Fiskal,simap-Ausschreibung,offen,nein,0
+O11199,3238,Widnau,SG,Deutsch,A,9756,Schalter,Account Manager,freihändig,ja,1
+O11210,86,Dielsdorf,ZH,Deutsch,A,5966,Fiskal,Partner oder Messe,Einladung,nein,0
+O11213,4104,Lupfig,AG,Deutsch,A,3141,Schalter,Account Manager,freihändig,nein,1
+O11228,2546,Grenchen,SO,Deutsch,A,17468,Schalter,Account Manager,freihändig,ja,2
+O11244,4274,Brittnau,AG,Deutsch,B,3947,Fiskal,Anfrage der Gemeinde,Einladung,nein,1
+O11265,2892,Oberdorf (BL),BL,Deutsch,A,2403,Fiskal,Account Manager,freihändig,nein,0
+O11275,1201,Altdorf (UR),UR,Deutsch,A,9537,Campus,simap-Ausschreibung,offen,nein,0
+O11291,536,Diemerswil,BE,Deutsch,B,204,Fiskal,Partner oder Messe,freihändig,nein,0
+O11307,4065,Dottikon,AG,Deutsch,A,3891,Campus,simap-Ausschreibung,offen,nein,0
+O11308,3101,Appenzell,AI,Deutsch,A,5778,Campus,Account Manager,freihändig,ja,3
+O11310,3426,Zuzwil (SG),SG,Deutsch,A,4792,Fiskal,Anfrage der Gemeinde,freihändig,ja,3
+O11314,905,Rüderswil,BE,Deutsch,B,2392,Fiskal,Account Manager,Einladung,ja,4
+O11325,4132,Birrwil,AG,Deutsch,A,1149,Schalter,Anfrage der Gemeinde,freihändig,ja,4
+O11328,5254,Mendrisio,TI,Italienisch,A,14870,Fiskal,Partner oder Messe,Einladung,nein,3
+O11333,2773,Reinach (BL),BL,Deutsch,A,19181,Schalter,Account Manager,Einladung,ja,7
+O11340,1323,Wollerau,SZ,Deutsch,A,7299,Campus,simap-Ausschreibung,offen,nein,1
+O11355,6458,Neuchâtel,NE,Französisch,A,44588,Schalter,Account Manager,Einladung,nein,1
+O11359,3103,Rüte,AI,Deutsch,C,3692,Schalter,Partner oder Messe,freihändig,ja,1
+O11385,5762,Sergey,VD,Französisch,C,145,Schalter,Partner oder Messe,freihändig,nein,1
+O11386,1024,Emmen,LU,Deutsch,A,31043,Fiskal,simap-Ausschreibung,offen,nein,0
+O11391,33,Kleinandelfingen,ZH,Deutsch,A,2074,Campus,Partner oder Messe,Einladung,nein,0
+O11392,156,Meilen,ZH,Deutsch,A,14335,Campus,simap-Ausschreibung,offen,nein,1
+O11393,84,Dällikon,ZH,Deutsch,A,4177,Fiskal,Account Manager,Einladung,nein,1
+O11410,4136,Holziken,AG,Deutsch,A,1474,Fiskal,Anfrage der Gemeinde,freihändig,nein,2
+O11417,6435,La Chaux-du-Milieu,NE,Französisch,B,496,Campus,Partner oder Messe,Einladung,nein,0
+O11420,4566,Frauenfeld,TG,Deutsch,A,25781,Fiskal,simap-Ausschreibung,offen,nein,0
+O11427,3291,Bad Ragaz,SG,Deutsch,A,6264,Schalter,Account Manager,freihändig,nein,0
+O11433,4008,Küttigen,AG,Deutsch,A,6268,Fiskal,Account Manager,freihändig,nein,1
+O11437,2974,Wilchingen,SH,Deutsch,B,1740,Fiskal,Anfrage der Gemeinde,Einladung,nein,1
+O11439,245,Oberengstringen,ZH,Deutsch,A,6738,Schalter,Partner oder Messe,freihändig,ja,1
+O11441,191,Dübendorf,ZH,Deutsch,A,29303,Campus,simap-Ausschreibung,offen,ja,4
+O11461,2572,Däniken,SO,Deutsch,A,2914,Fiskal,Partner oder Messe,freihändig,ja,3
+O11471,6157,Val-d'Illiez,VS,Französisch,D,2025,Schalter,Partner oder Messe,freihändig,ja,2
+O11472,6413,Rochefort,NE,Französisch,B,1243,Fiskal,Partner oder Messe,freihändig,nein,1
+O11475,1703,Hünenberg,ZG,Deutsch,A,8784,Fiskal,Partner oder Messe,freihändig,ja,4
+O11495,6775,Bonfol,JU,Französisch,D,652,Campus,Anfrage der Gemeinde,freihändig,ja,2
+O11500,116,Grüningen,ZH,Deutsch,A,3641,Campus,Account Manager,Einladung,ja,4
+O11504,1341,Altendorf,SZ,Deutsch,A,7059,Schalter,Partner oder Messe,freihändig,ja,3
+O11515,3212,Eggersriet,SG,Deutsch,B,2339,Fiskal,Partner oder Messe,freihändig,ja,0
+O11520,557,Zuzwil (BE),BE,Deutsch,B,570,Fiskal,Partner oder Messe,Einladung,ja,0
+O11530,869,Kaufdorf,BE,Deutsch,C,1112,Fiskal,Partner oder Messe,offen,nein,0
+O11535,2830,Lupsingen,BL,Deutsch,B,1450,Campus,Account Manager,Einladung,nein,1
+O11539,3232,Balgach,SG,Deutsch,A,4891,Schalter,Anfrage der Gemeinde,freihändig,ja,1
+O11547,6008,Ried-Brig,VS,Deutsch,D,2111,Fiskal,Anfrage der Gemeinde,Einladung,nein,0
+O11566,902,Langnau im Emmental,BE,Deutsch,B,9320,Campus,Account Manager,Einladung,ja,0
+O11569,362,Ittigen,BE,Deutsch,A,11306,Campus,Account Manager,offen,nein,0
+O11571,1348,Vorderthal,SZ,Deutsch,D,992,Fiskal,simap-Ausschreibung,offen,ja,5
+O11587,1146,Wauwil,LU,Deutsch,C,2261,Campus,Account Manager,Einladung,ja,3
+O11614,1701,Baar,ZG,Deutsch,A,24617,Fiskal,simap-Ausschreibung,offen,nein,0
+O11623,744,Orpund,BE,Deutsch,A,2873,Campus,Anfrage der Gemeinde,Einladung,ja,0
+O11631,297,Bauma,ZH,Deutsch,A,4873,Fiskal,Partner oder Messe,Einladung,nein,0
+O11642,2579,Hägendorf,SO,Deutsch,A,5140,Fiskal,Anfrage der Gemeinde,Einladung,nein,0
+O11660,6641,Troinex,GE,Französisch,C,2520,Campus,Partner oder Messe,Einladung,ja,1
+O11662,1711,Zug,ZG,Deutsch,A,30618,Fiskal,simap-Ausschreibung,offen,ja,3
+O11664,496,Ins,BE,Deutsch,C,3555,Campus,Account Manager,Einladung,ja,4
+O11666,111,Bäretswil,ZH,Deutsch,B,5053,Fiskal,simap-Ausschreibung,offen,ja,4
+O11692,3661,Cazis,GR,Deutsch,A,2264,Schalter,Partner oder Messe,freihändig,nein,0
+O11695,611,Kiesen,BE,Deutsch,C,1012,Schalter,Partner oder Messe,freihändig,ja,3
+O11735,5187,Gravesano,TI,Italienisch,A,1375,Fiskal,Partner oder Messe,freihändig,nein,0
+O11744,2307,Tentlingen,FR,Deutsch,B,1338,Fiskal,simap-Ausschreibung,offen,nein,0
+O11749,793,St. Stephan,BE,Deutsch,D,1330,Schalter,Anfrage der Gemeinde,freihändig,nein,3
+O11772,551,Urtenen-Schönbühl,BE,Deutsch,A,6317,Fiskal,Partner oder Messe,Einladung,ja,1
+O11782,177,Pfäffikon,ZH,Deutsch,A,12164,Schalter,Anfrage der Gemeinde,freihändig,ja,1
+O11786,3408,Uzwil,SG,Deutsch,A,13129,Fiskal,simap-Ausschreibung,offen,nein,1
+O11794,3007,Waldstatt,AR,Deutsch,B,1817,Schalter,Account Manager,freihändig,ja,2
+O11795,1710,Walchwil,ZG,Deutsch,A,3711,Campus,Account Manager,Einladung,nein,1
+O11809,225,Rickenbach (ZH),ZH,Deutsch,C,2749,Campus,Account Manager,Einladung,ja,1
+O11812,2846,Gelterkinden,BL,Deutsch,A,6268,Fiskal,Partner oder Messe,Einladung,ja,4
+O11818,620,Oberthal,BE,Deutsch,B,723,Schalter,Partner oder Messe,freihändig,nein,1
+O11836,4045,Wettingen,AG,Deutsch,A,20934,Campus,Anfrage der Gemeinde,Einladung,nein,2
+O11846,3424,Oberbüren,SG,Deutsch,C,4542,Fiskal,simap-Ausschreibung,offen,ja,0
+O11847,2614,Büsserach,SO,Deutsch,A,2298,Campus,Anfrage der Gemeinde,freihändig,nein,1
+O11854,594,Wilderswil,BE,Deutsch,A,2669,Campus,Anfrage der Gemeinde,Einladung,nein,1
+O11855,2601,Solothurn,SO,Deutsch,A,16933,Campus,Partner oder Messe,Einladung,nein,0
+O11856,4195,Egliswil,AG,Deutsch,C,1477,Campus,Anfrage der Gemeinde,Einladung,nein,0
+O11858,2043,Sévaz,FR,Französisch,C,304,Campus,Anfrage der Gemeinde,Einladung,nein,0
+O11864,6002,Brig-Glis,VS,Deutsch,A,13079,Campus,Account Manager,offen,ja,0
+O11877,762,Diemtigen,BE,Deutsch,D,2259,Schalter,Account Manager,freihändig,nein,0
+O11882,1140,Reiden,LU,Deutsch,A,7186,Campus,Partner oder Messe,Einladung,ja,1
+O11923,785,Meiringen,BE,Deutsch,D,4639,Campus,Account Manager,offen,ja,2
+O11924,791,Boltigen,BE,Deutsch,D,1252,Fiskal,Anfrage der Gemeinde,Einladung,nein,1
+O11931,4683,Lengwil,TG,Deutsch,C,1744,Fiskal,Account Manager,Einladung,nein,1
+O11940,3272,Gams,SG,Deutsch,C,3550,Fiskal,Account Manager,freihändig,nein,1
+O11955,551,Urtenen-Schönbühl,BE,Deutsch,A,6317,Fiskal,Account Manager,Einladung,ja,0
+O11973,1631,Glarus Süd,GL,Deutsch,D,9453,Schalter,Partner oder Messe,Einladung,nein,0
+O11974,51,Bachenbülach,ZH,Deutsch,A,4180,Campus,Partner oder Messe,Einladung,nein,2
+O11980,4062,Berikon,AG,Deutsch,A,4756,Fiskal,Account Manager,Einladung,ja,3
+O11983,14,Wettswil am Albis,ZH,Deutsch,A,5240,Schalter,Account Manager,freihändig,nein,1
+O11986,199,Volketswil,ZH,Deutsch,A,18640,Schalter,Partner oder Messe,freihändig,ja,2
+O11996,2196,Fribourg,FR,Französisch,A,38197,Campus,simap-Ausschreibung,offen,nein,0
+O12013,213,Brütten,ZH,Deutsch,B,2067,Fiskal,Anfrage der Gemeinde,Einladung,ja,2
+O12016,117,Hinwil,ZH,Deutsch,A,11277,Schalter,Anfrage der Gemeinde,freihändig,ja,4
+O12021,2824,Frenkendorf,BL,Deutsch,A,6454,Campus,Account Manager,Einladung,nein,1
+O12024,1024,Emmen,LU,Deutsch,A,31043,Schalter,simap-Ausschreibung,offen,ja,5
+O12033,4258,Rheinfelden,AG,Deutsch,A,13503,Fiskal,Account Manager,Einladung,ja,2
+O12036,2770,Muttenz,BL,Deutsch,A,17910,Fiskal,simap-Ausschreibung,offen,nein,3
+O12042,2825,Füllinsdorf,BL,Deutsch,A,4588,Fiskal,Anfrage der Gemeinde,freihändig,ja,2
+O12051,94,Otelfingen,ZH,Deutsch,A,2982,Fiskal,Account Manager,freihändig,nein,0
+O12088,2272,Misery-Courtion,FR,Französisch,C,2116,Campus,Account Manager,offen,nein,1
+O12094,100,Stadel,ZH,Deutsch,C,2293,Fiskal,Account Manager,Einladung,ja,1
+O12121,2408,Wolfwil,SO,Deutsch,A,2307,Fiskal,Account Manager,Einladung,ja,3
+O12128,5883,Corseaux,VD,Französisch,A,2285,Schalter,Anfrage der Gemeinde,freihändig,nein,1
+O12134,2556,Selzach,SO,Deutsch,A,3434,Campus,Anfrage der Gemeinde,Einladung,ja,5
+O12135,770,Stocken-Höfen,BE,Deutsch,B,1012,Fiskal,Account Manager,freihändig,nein,0
+O12165,3443,Gossau (SG),SG,Deutsch,A,18108,Schalter,Anfrage der Gemeinde,Einladung,ja,3
+O12168,982,Niederönz,BE,Deutsch,A,1681,Fiskal,Account Manager,freihändig,nein,1
+O12188,947,Zwieselberg,BE,Deutsch,C,329,Campus,Account Manager,Einladung,ja,1
+O12191,6636,Puplinge,GE,Französisch,C,2468,Fiskal,Account Manager,Einladung,nein,1
+O12196,2572,Däniken,SO,Deutsch,A,2914,Fiskal,Account Manager,Einladung,nein,1
+O12207,2476,Hofstetten-Flüh,SO,Deutsch,B,3209,Fiskal,Anfrage der Gemeinde,Einladung,ja,0
+O12210,4696,Tägerwilen,TG,Deutsch,A,4762,Schalter,Partner oder Messe,freihändig,ja,0
+O12227,3983,Medel (Lucmagn),GR,Deutsch,D,355,Fiskal,Account Manager,freihändig,ja,1
+O12236,870,Kehrsatz,BE,Deutsch,A,4331,Schalter,Account Manager,freihändig,nein,1
+O12258,6152,Collombey-Muraz,VS,Französisch,C,9467,Campus,simap-Ausschreibung,offen,nein,0
+O12271,2933,Buchberg,SH,Deutsch,B,854,Fiskal,Anfrage der Gemeinde,freihändig,nein,1
+O12283,2554,Riedholz,SO,Deutsch,B,2323,Fiskal,Partner oder Messe,Einladung,nein,0
+O12294,3762,Scuol,GR,Deutsch,D,4624,Schalter,Partner oder Messe,freihändig,ja,1
+O12299,3255,Rebstein,SG,Deutsch,A,4533,Campus,Anfrage der Gemeinde,Einladung,nein,0
+O12304,2891,Niederdorf,BL,Deutsch,A,1846,Campus,Account Manager,Einladung,nein,1
+O12317,1301,Einsiedeln,SZ,Deutsch,A,16106,Fiskal,Partner oder Messe,Einladung,ja,4
+O12324,561,Adelboden,BE,Deutsch,D,3352,Campus,Account Manager,Einladung,nein,1
+O12335,2784,Dittingen,BL,Deutsch,B,708,Fiskal,Partner oder Messe,freihändig,ja,5
+O12349,4013,Unterentfelden,AG,Deutsch,A,4249,Fiskal,Account Manager,offen,nein,0
+O12355,2554,Riedholz,SO,Deutsch,B,2323,Fiskal,Anfrage der Gemeinde,Einladung,nein,0
+O12358,6619,Corsier (GE),GE,Französisch,C,2186,Schalter,Account Manager,freihändig,nein,1
+O12373,628,Zäziwil,BE,Deutsch,B,1579,Schalter,Account Manager,freihändig,ja,3
+O12380,2613,Breitenbach,SO,Deutsch,A,3914,Schalter,Account Manager,freihändig,nein,1
+O12387,4075,Rudolfstetten-Friedlisberg,AG,Deutsch,A,4508,Campus,Anfrage der Gemeinde,Einladung,nein,0
+O12391,4864,Steckborn,TG,Deutsch,A,3746,Campus,Account Manager,Einladung,nein,1
+O12394,755,Worben,BE,Deutsch,A,2411,Fiskal,Account Manager,freihändig,ja,0
+O12395,6136,Martigny,VS,Französisch,A,20210,Fiskal,Account Manager,Einladung,ja,3
+O12398,156,Meilen,ZH,Deutsch,A,14335,Fiskal,Account Manager,offen,ja,1
+O12401,213,Brütten,ZH,Deutsch,B,2067,Fiskal,Partner oder Messe,Einladung,ja,2
+O12402,383,Büren an der Aare,BE,Deutsch,A,3584,Schalter,Anfrage der Gemeinde,freihändig,nein,0
+O12414,3782,Celerina/Schlarigna,GR,Deutsch,D,1502,Fiskal,Account Manager,freihändig,ja,3
+O12422,3988,Obersaxen Mundaun,GR,Deutsch,D,1165,Fiskal,Account Manager,freihändig,ja,3
+O12427,2275,Murten,FR,Deutsch,A,8259,Fiskal,Anfrage der Gemeinde,freihändig,ja,1
+O12436,3312,Benken (SG),SG,Deutsch,C,2982,Fiskal,Account Manager,Einladung,ja,2
+O12450,2299,Plaffeien,FR,Deutsch,B,3621,Fiskal,Partner oder Messe,freihändig,nein,0
+O12463,4253,Magden,AG,Deutsch,B,3885,Fiskal,Account Manager,freihändig,ja,1
+O12465,3253,Marbach (SG),SG,Deutsch,C,2110,Campus,simap-Ausschreibung,offen,nein,1
+O12468,6153,Monthey,VS,Französisch,A,17894,Fiskal,Account Manager,offen,nein,0
+O12487,355,Köniz,BE,Deutsch,A,42044,Schalter,simap-Ausschreibung,offen,nein,2
+O12489,2293,Düdingen,FR,Deutsch,A,8181,Schalter,Account Manager,freihändig,nein,1
+O12492,2963,Ramsen,SH,Deutsch,A,1465,Campus,Account Manager,freihändig,ja,2
+O12498,393,Rüti bei Büren,BE,Deutsch,A,857,Schalter,Partner oder Messe,freihändig,nein,1
+O12505,497,Lüscherz,BE,Deutsch,B,551,Schalter,Account Manager,freihändig,nein,0
+O12526,4761,Sirnach,TG,Deutsch,A,7803,Fiskal,Partner oder Messe,Einladung,ja,4
+O12540,983,Oberbipp,BE,Deutsch,A,1750,Fiskal,Anfrage der Gemeinde,freihändig,ja,2
+O12554,2915,Dörflingen,SH,Deutsch,C,1031,Fiskal,Account Manager,Einladung,nein,0
+O12560,591,Saxeten,BE,Deutsch,D,93,Fiskal,Anfrage der Gemeinde,freihändig,ja,4
+O12564,5601,Chexbres,VD,Französisch,A,2234,Fiskal,Anfrage der Gemeinde,Einladung,nein,1
+O12569,2933,Buchberg,SH,Deutsch,B,854,Fiskal,Account Manager,freihändig,ja,3
+O12582,2821,Arisdorf,BL,Deutsch,B,1653,Fiskal,Account Manager,offen,nein,0
+O12583,3443,Gossau (SG),SG,Deutsch,A,18108,Schalter,Account Manager,Einladung,nein,0
+O12586,2,Affoltern am Albis,ZH,Deutsch,A,12303,Fiskal,Account Manager,offen,nein,0
+O12602,66,Opfikon,ZH,Deutsch,A,21014,Campus,simap-Ausschreibung,offen,nein,0
+O12616,5938,Yverdon-les-Bains,VD,Französisch,A,30156,Schalter,Partner oder Messe,Einladung,nein,0
+O12621,2044,Surpierre,FR,Französisch,C,1115,Campus,Partner oder Messe,offen,nein,2
+O12623,4911,Bürglen (TG),TG,Deutsch,A,3959,Schalter,Anfrage der Gemeinde,freihändig,nein,1
+O12637,88,Neerach,ZH,Deutsch,A,3175,Fiskal,Account Manager,Einladung,nein,3
+O12650,66,Opfikon,ZH,Deutsch,A,21014,Fiskal,Account Manager,Einladung,nein,1
+O12658,1143,Schötz,LU,Deutsch,C,4530,Campus,Partner oder Messe,freihändig,nein,1
+O12659,3823,Soazza,GR,Italienisch,D,319,Fiskal,Anfrage der Gemeinde,Einladung,nein,1
+O12660,612,Konolfingen,BE,Deutsch,A,5347,Fiskal,Account Manager,Einladung,ja,1
+O12664,2526,Lohn-Ammannsegg,SO,Deutsch,A,2844,Fiskal,Partner oder Messe,freihändig,ja,0
+O12674,5891,Veytaux,VD,Französisch,A,920,Campus,simap-Ausschreibung,offen,nein,1
+O12687,3001,Herisau,AR,Deutsch,A,15763,Fiskal,Account Manager,Einladung,nein,1
+O12694,2862,Tecknau,BL,Deutsch,A,839,Campus,Account Manager,freihändig,nein,2
+O12700,791,Boltigen,BE,Deutsch,D,1252,Schalter,Account Manager,freihändig,ja,2
+O12726,5203,Morcote,TI,Italienisch,A,715,Schalter,Account Manager,freihändig,nein,0
+O12747,243,Dietikon,ZH,Deutsch,A,27746,Fiskal,Anfrage der Gemeinde,Einladung,ja,3
+O12751,3293,Mels,SG,Deutsch,B,8561,Fiskal,Partner oder Messe,freihändig,ja,1
+O12781,4131,Beinwil am See,AG,Deutsch,A,3361,Fiskal,Account Manager,Einladung,nein,1
+O12782,5251,Coldrerio,TI,Italienisch,A,2903,Fiskal,Account Manager,Einladung,nein,2
+O12796,739,Ipsach,BE,Deutsch,A,3968,Campus,Account Manager,Einladung,nein,0
+O12808,182,Wildberg,ZH,Deutsch,B,985,Fiskal,Anfrage der Gemeinde,freihändig,nein,1
+O12811,4401,Arbon,TG,Deutsch,A,14796,Fiskal,Account Manager,Einladung,ja,3
+O12832,6295,Täsch,VS,Deutsch,A,1314,Campus,Partner oder Messe,Einladung,nein,0
+O12845,544,Moosseedorf,BE,Deutsch,A,4130,Fiskal,Anfrage der Gemeinde,freihändig,nein,1
+O12846,2211,Neyruz (FR),FR,Französisch,C,2664,Fiskal,Anfrage der Gemeinde,Einladung,nein,0
+O12850,1065,Root,LU,Deutsch,A,5126,Schalter,Partner oder Messe,freihändig,nein,1
+O12855,1140,Reiden,LU,Deutsch,A,7186,Fiskal,simap-Ausschreibung,offen,nein,0
+O12857,245,Oberengstringen,ZH,Deutsch,A,6738,Campus,Partner oder Messe,Einladung,nein,1
+O12864,594,Wilderswil,BE,Deutsch,A,2669,Fiskal,Account Manager,Einladung,ja,2
+O12877,1151,Willisau,LU,Deutsch,C,8970,Schalter,Account Manager,freihändig,nein,0
+O12879,4486,Hauptwil-Gottshaus,TG,Deutsch,C,1993,Fiskal,Anfrage der Gemeinde,Einladung,nein,0
+O12881,3394,Mosnang,SG,Deutsch,B,2847,Fiskal,Account Manager,freihändig,ja,1
+O12913,231,Zell (ZH),ZH,Deutsch,A,6299,Schalter,Partner oder Messe,freihändig,ja,2
+O12914,3215,Rorschach,SG,Deutsch,A,9438,Schalter,Account Manager,freihändig,nein,0
+O12917,2309,Wünnewil-Flamatt,FR,Deutsch,A,5569,Campus,Account Manager,Einladung,nein,2
+O12919,249,Unterengstringen,ZH,Deutsch,A,3934,Fiskal,Partner oder Messe,offen,nein,1
+O12924,4486,Hauptwil-Gottshaus,TG,Deutsch,C,1993,Campus,simap-Ausschreibung,offen,ja,3
+O12925,3238,Widnau,SG,Deutsch,A,9756,Campus,simap-Ausschreibung,offen,nein,0
+O12926,4083,Zufikon,AG,Deutsch,A,4503,Schalter,Account Manager,Einladung,ja,1
+O12935,1342,Galgenen,SZ,Deutsch,C,5227,Campus,Account Manager,Einladung,nein,0
+O12946,4279,Murgenthal,AG,Deutsch,A,3013,Fiskal,Partner oder Messe,Einladung,nein,0
+O12964,153,Hombrechtikon,ZH,Deutsch,A,8775,Schalter,Anfrage der Gemeinde,freihändig,ja,6
+O12966,632,Wichtrach,BE,Deutsch,B,4354,Schalter,Account Manager,freihändig,nein,0
+O12970,4201,Lenzburg,AG,Deutsch,A,10822,Schalter,Partner oder Messe,freihändig,ja,4
+O12981,3275,Sevelen,SG,Deutsch,A,5112,Fiskal,Partner oder Messe,freihändig,nein,0

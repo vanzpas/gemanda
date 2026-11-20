@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GovTech-Marktradar · Gemanda</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="kopf">
+  <div class="kopf-in">
+    <div>
+      <div class="ob">Gemanda AG · MVP</div>
+      <h1>GovTech-Marktradar</h1>
+    </div>
+    <nav id="tabs" role="tablist">
+      <button role="tab" data-tab="liste" aria-selected="true">Offertliste</button>
+      <button role="tab" data-tab="gemeinden">Gemeinden</button>
+      <button role="tab" data-tab="pilot">Rückblick &amp; Pilot</button>
+      <button role="tab" data-tab="herleitung">So rechnet der Radar</button>
+    </nav>
+  </div>
+</header>
+<div class="hinweis-band" id="datenhinweis"></div>
+
+<main>
+<!-- ============================ OFFERTLISTE ============================ -->
+<section id="tab-liste" class="tab aktiv">
+  <div class="zeile-oben">
+    <div>
+      <h2 id="quartal-titel">Offertliste</h2>
+      <p class="klein" id="quartal-quelle"></p>
+    </div>
+    <div class="knoepfe">
+      <label class="knopf sek" for="datei">Quartal hochladen (CSV)</label>
+      <input type="file" id="datei" accept=".csv,text/csv" hidden>
+      <a class="knopf sek" href="daten/demo_quartal_2027Q1.csv" download="vorlage_opportunitaeten.csv">Vorlage</a>
+      <button class="knopf" id="export">Liste exportieren</button>
+    </div>
+  </div>
+  <div id="drop" class="drop">CSV-Datei hierher ziehen, um ein neues Quartal zu laden</div>
+  <div id="meldungen"></div>
+
+  <div class="regler">
+    <label>Offerten pro Quartal <input type="number" id="kap" min="10" max="320" value="80"></label>
+    <label>davon Entdeckungsplätze <input type="number" id="entd" min="0" max="40" value="10">
+      <span class="info" data-info="Plätze für Neukunden mit der besten Chance unter dem Schnitt. Das Modell kennt nur Fälle, bei denen bisher etwas unternommen wurde – so lernt es Neues. Kostet im Rückblick im Schnitt unter einem Auftrag pro Quartal.">?</span></label>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="filter">
+    <div class="seg" id="ansicht">
+      <button data-v="alle" class="an">Alle</button>
+      <button data-v="liste">Auf der Liste</button>
+      <button data-v="unter">Unter dem Schnitt</button>
+    </div>
+    <select id="f-typ"><option value="">Alle Typen</option></select>
+    <input type="search" id="suche" placeholder="Gemeinde suchen">
+    <label class="klein"><input type="checkbox" id="pilot-spalten"> Pilot-Spalten</label>
+  </div>
+
+  <div class="tabelle-wrap"><table class="t" id="liste"></table></div>
+</section>
+
+<!-- ============================ GEMEINDEN ============================ -->
+<section id="tab-gemeinden" class="tab">
+  <h2>Gemeinden: Wer braucht was?</h2>
+  <p class="klein">Alle 2'172 Schweizer Gemeinden (Gemeindestand 2021) mit Typ, Kundenstatus und nächstem passendem Produkt. Der Typ kommt aus der Analyse von Block 2 und wird einmal im Jahr mit neuen BFS-Zahlen nachgerechnet.</p>
+  <div class="typkarten" id="typkarten"></div>
+  <div class="filter">
+    <select id="g-typ"><option value="">Alle Typen</option></select>
+    <select id="g-sprache"><option value="">Alle Sprachen</option></select>
+    <select id="g-kanton"><option value="">Alle Kantone</option></select>
+    <select id="g-status">
+      <option value="">Alle</option>
+      <option value="kunde">Kundin</option>
+      <option value="offerte">Offerte, aber kein Auftrag</option>
+      <option value="nie">Noch nie offeriert</option>
+    </select>
+    <input type="search" id="g-suche" placeholder="Gemeinde suchen">
+    <button class="knopf sek" id="kampagne">Kampagne: Typ C ohne Offerte</button>
+  </div>
+  <p class="klein" id="g-anzahl"></p>
+  <div class="tabelle-wrap"><table class="t" id="gemeinden"></table></div>
+  <button class="knopf sek" id="g-mehr">Mehr anzeigen</button>
+</section>
+
+<!-- ============================ PILOT ============================ -->
+<section id="tab-pilot" class="tab">
+  <h2>Rückblick: Was hätte die Liste gebracht?</h2>
+  <p class="klein">Geprüft an 900 Offerten aus der Vergangenheit, die das Modell beim Lernen nie gesehen hat. 80 von 320 sind 25 % – darum zählen wir die Treffer unter den obersten 225 und rechnen auf 80 Offerten um.</p>
+  <div id="rueckblick"></div>
+  <h2 style="margin-top:36px">Pilot: Liste gegen Erfahrung</h2>
+  <div id="pilot"></div>
+</section>
+
+<!-- ============================ HERLEITUNG ============================ -->
+<section id="tab-herleitung" class="tab">
+  <h2>Von der Analyse zum Tool</h2>
+  <p class="klein">Jedes Element im Marktradar folgt aus einem Ergebnis unserer Analyse.</p>
+  <div class="tabelle-wrap"><table class="t" id="herleitung"></table></div>
+  <h2 style="margin-top:32px">Was der Radar rechnet</h2>
+  <div class="zwei">
+    <div class="karte"><b class="t">Gewinnchance</b>Logistische Regression auf 3'000 entschiedenen Offerten 2017–2025. Merkmale bei der Erfassung: Gemeindetyp, Produktlinie, Quelle, Verfahren, Bestandskunde, Kontakte, Sprachregion. Der Offertwert ist kein Merkmal – er steht erst nach der Ausarbeitung fest.</div>
+    <div class="karte"><b class="t">Offertwert</b>Lineare Regression: Einwohner, Produktlinie, Bestandskunde, Kontakte. Wir zeigen immer eine Bandbreite – den Bereich, in dem 8 von 10 Fehlern liegen. <span id="reg-text"></span></div>
+    <div class="karte"><b class="t">Erwarteter Auftragswert</b>Gewinnchance × geschätzter Offertwert. Er steht als Information neben jeder Zeile – sortiert wird nach Gewinnchance, weil das Ziel möglichst viele Aufträge ist.</div>
+    <div class="karte"><b class="t">Einmal trainiert, dann angewendet</b>Die Modelle werden einmal gerechnet und gespeichert. Der Radar wendet sie im Browser an; hochgeladene Dateien verlassen den Computer nicht.</div>
+  </div>
+  <h2 style="margin-top:32px">Grenzen</h2>
+  <ul id="grenzen"></ul>
+</section>
+</main>
+<footer id="fuss"></footer>
+<div id="tip" role="tooltip"></div>
+<script src="inhalte.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

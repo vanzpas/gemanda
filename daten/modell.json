@@ -1,0 +1,291 @@
+{
+ "stand": "Training auf Datensatz 2 (2017–2025), Aufteilung 70/30, Zufallswert 42",
+ "klassifikation": {
+  "spalten": [
+   "bestandskunde_n",
+   "kontakte_12m",
+   "gemeindetyp_B",
+   "gemeindetyp_C",
+   "gemeindetyp_D",
+   "produktlinie_Fiskal",
+   "produktlinie_Schalter",
+   "quelle_Anfrage der Gemeinde",
+   "quelle_Partner oder Messe",
+   "quelle_simap-Ausschreibung",
+   "verfahren_freihändig",
+   "verfahren_offen",
+   "sprachregion_Französisch",
+   "sprachregion_Italienisch"
+  ],
+  "mittel": [
+   0.372857,
+   1.340476,
+   0.187619,
+   0.108571,
+   0.083333,
+   0.407143,
+   0.371429,
+   0.288571,
+   0.220476,
+   0.108571,
+   0.504286,
+   0.155238,
+   0.127143,
+   0.024286
+  ],
+  "streuung": [
+   0.483565,
+   1.351817,
+   0.390408,
+   0.311101,
+   0.276385,
+   0.491302,
+   0.483187,
+   0.453098,
+   0.414568,
+   0.311101,
+   0.499982,
+   0.362132,
+   0.333133,
+   0.153935
+  ],
+  "koeff": [
+   0.781866,
+   0.265834,
+   0.057981,
+   0.441719,
+   0.104147,
+   0.092628,
+   0.160217,
+   0.493473,
+   -0.096929,
+   -0.618405,
+   0.142279,
+   -0.073394,
+   -0.04051,
+   -0.209123
+  ],
+  "achse": -2.210457
+ },
+ "regression": {
+  "spalten": [
+   "einwohner_1000",
+   "produktlinie_Fiskal",
+   "produktlinie_Schalter",
+   "bestandskunde_n",
+   "kontakte_12m"
+  ],
+  "koeff": [
+   5.7804,
+   -33.6021,
+   -137.1032,
+   -25.4003,
+   -0.1738
+  ],
+  "start": 188.0607,
+  "band_unten": -42.2,
+  "band_oben": 42.9,
+  "mae": 26.7,
+  "r2": 0.815,
+  "verzerrung": {
+   "A": -5.2,
+   "B": -5.2,
+   "C": 36.8,
+   "D": -1.1
+  }
+ },
+ "kennzahlen": {
+  "ja_anteil": 0.172,
+  "auftraege_liste": 33.8,
+  "auftraege_zufall": 13.8,
+  "spanne": [
+   33.8,
+   37.0
+  ],
+  "treffer_top225": 95,
+  "test_n": 900,
+  "lernkosten": {
+   "liste_plaetze": 70,
+   "entdeckung_plaetze": 10,
+   "auftraege_nur_liste": 34.8,
+   "auftraege_mit_entdeckung": 34.2,
+   "kosten_spanne": [
+    -0.7,
+    2.1
+   ],
+   "neukunden_nur_liste": 6.3,
+   "neukunden_mit_entdeckung": 14.9
+  },
+  "zusammensetzung": [
+   {
+    "typ": "A",
+    "test": 548,
+    "ja_anteil": 0.13,
+    "auf_liste": 99,
+    "anteil_auf_liste": 0.181
+   },
+   {
+    "typ": "B",
+    "test": 156,
+    "ja_anteil": 0.186,
+    "auf_liste": 45,
+    "anteil_auf_liste": 0.288
+   },
+   {
+    "typ": "C",
+    "test": 107,
+    "ja_anteil": 0.355,
+    "auf_liste": 49,
+    "anteil_auf_liste": 0.458
+   },
+   {
+    "typ": "D",
+    "test": 89,
+    "ja_anteil": 0.191,
+    "auf_liste": 32,
+    "anteil_auf_liste": 0.36
+   }
+  ],
+  "gewinnkurve": [
+   0.0,
+   0.194,
+   0.303,
+   0.426,
+   0.542,
+   0.613,
+   0.684,
+   0.716,
+   0.774,
+   0.826,
+   0.877,
+   0.91,
+   0.942,
+   0.942,
+   0.948,
+   0.961,
+   0.974,
+   0.987,
+   0.994,
+   1.0,
+   1.0
+  ]
+ },
+ "anteile": {
+  "bestandskunde": {
+   "ja": {
+    "ja": 0.331,
+    "n": 1152
+   },
+   "nein": {
+    "ja": 0.074,
+    "n": 1848
+   }
+  },
+  "quelle": {
+   "Account Manager": {
+    "ja": 0.136,
+    "n": 1158
+   },
+   "Anfrage der Gemeinde": {
+    "ja": 0.326,
+    "n": 846
+   },
+   "Partner oder Messe": {
+    "ja": 0.114,
+    "n": 668
+   },
+   "simap-Ausschreibung": {
+    "ja": 0.024,
+    "n": 328
+   }
+  },
+  "gemeindetyp": {
+   "A": {
+    "ja": 0.138,
+    "n": 1851
+   },
+   "B": {
+    "ja": 0.185,
+    "n": 550
+   },
+   "C": {
+    "ja": 0.325,
+    "n": 335
+   },
+   "D": {
+    "ja": 0.193,
+    "n": 264
+   }
+  },
+  "produktlinie": {
+   "Campus": {
+    "ja": 0.128,
+    "n": 673
+   },
+   "Fiskal": {
+    "ja": 0.165,
+    "n": 1247
+   },
+   "Schalter": {
+    "ja": 0.208,
+    "n": 1080
+   }
+  },
+  "verfahren": {
+   "Einladung": {
+    "ja": 0.161,
+    "n": 1044
+   },
+   "freihändig": {
+    "ja": 0.221,
+    "n": 1479
+   },
+   "offen": {
+    "ja": 0.046,
+    "n": 477
+   }
+  }
+ },
+ "kombi": {
+  "ja|anfrage": {
+   "ja": 0.508,
+   "n": 398
+  },
+  "ja|andere": {
+   "ja": 0.237,
+   "n": 754
+  },
+  "nein|anfrage": {
+   "ja": 0.165,
+   "n": 448
+  },
+  "nein|andere": {
+   "ja": 0.044,
+   "n": 1400
+  }
+ },
+ "mix": {
+  "produktlinie": {
+   "Fiskal": 0.416,
+   "Schalter": 0.36,
+   "Campus": 0.224
+  },
+  "quelle": {
+   "Account Manager": 0.386,
+   "Anfrage der Gemeinde": 0.282,
+   "Partner oder Messe": 0.223,
+   "simap-Ausschreibung": 0.109
+  },
+  "gemeindetyp": {
+   "A": 0.617,
+   "B": 0.183,
+   "C": 0.112,
+   "D": 0.088
+  },
+  "sprachregion": {
+   "Deutsch": 0.851,
+   "Französisch": 0.124,
+   "Italienisch": 0.025
+  }
+ }
+}
