@@ -86,12 +86,20 @@ function ladeQuartal(text, name, quelle) {
       probleme.push(`Zeile ${i + 2} (${r.gemeindename || "?"}): ${falsch.length ? "unbekannter Wert in " + falsch.join(", ") : "Zahl fehlt"}`);
       return;
     }
-    rows.push(rechne({ ...r, id: r.offerte_id || "Z" + String(i + 1).padStart(4, "0"), einwohner: ew, kontakte_12m: ko }));
+    rows.push(rechne({ ...r, id: r.offerte_id || r.id || "Z" + String(i + 1).padStart(4, "0"), einwohner: ew, kontakte_12m: ko }));
   });
   if (probleme.length) meldung("warn", `${probleme.length} Zeile(n) übersprungen: ` + probleme.slice(0, 5).map(esc).join(" · ") + (probleme.length > 5 ? " …" : ""));
   quartal = { name, quelle, rows };
   try { zustand = JSON.parse(localStorage.getItem("radar:" + name)) || { over: {}, am: {}, erg: {} }; }
   catch (e) { zustand = { over: {}, am: {}, erg: {} }; }
+  // Lernkreislauf: Eine exportierte Liste mit eingetragenen Ergebnissen kann wieder geladen werden.
+  let zurueck = 0;
+  rows.forEach((r) => {
+    if (["rein", "raus"].includes(r.am_entscheid)) { zustand.over[r.id] = r.am_entscheid; if (r.am_grund) zustand.over[r.id + ":grund"] = r.am_grund; }
+    if (r.am_haette_gewaehlt === "ja") zustand.am[r.id] = 1;
+    if (["gewonnen", "verloren", "offen"].includes(r.ergebnis)) { zustand.erg[r.id] = r.ergebnis; zurueck++; }
+  });
+  if (zurueck) { meldung("ok", `${zurueck} eingetragene Ergebnisse übernommen – sie fliessen in die Pilot-Auswertung.`); speichere(); }
   $("#quartal-titel").textContent = "Offertliste · " + name;
   $("#quartal-quelle").textContent = `${rows.length} Opportunitäten · ${quelle}`;
   pruefeMix(rows);
@@ -166,9 +174,30 @@ function auswahl() {
   for (const r of frei) { if (n >= kap - entd) break; if (r.status === "unter") { r.status = "liste"; n++; } }
   for (const r of frei) { if (n >= kap) break; if (r.status === "unter" && r.bestandskunde === "nein") { r.status = "entd"; n++; } }
   for (const r of frei) { if (n >= kap) break; if (r.status === "unter") { r.status = "liste"; n++; } }
+
+  // Pilotmodus: Damit «Liste gegen AM» messbar wird, müssen beide Seiten offeriert werden.
+  // Fälle, die beide wählen, kommen zuerst; die übrigen Plätze teilen sich Liste und AM je zur Hälfte.
+  if ($("#pilotmodus").checked && Object.keys(zustand.am).length) {
+    const liste = sortiert.filter((r) => DRIN.has(r.status)), ids = new Set(liste.map((r) => r.id));
+    const beide = liste.filter((r) => zustand.am[r.id]);
+    const nurL = liste.filter((r) => !zustand.am[r.id]);
+    const nurA = frei.filter((r) => zustand.am[r.id] && !ids.has(r.id));
+    liste.forEach((r) => { r.status = "unter"; });
+    beide.forEach((r) => { r.status = "beide"; });
+    const rest = Math.max(0, kap - beide.length);
+    let nl = Math.ceil(rest / 2), na = rest - nl;
+    if (nurA.length < na) { nl += na - nurA.length; na = nurA.length; }
+    if (nurL.length < nl) { na = Math.min(nurA.length, na + nl - nurL.length); nl = nurL.length; }
+    nurL.slice(0, nl).forEach((r) => { r.status = "pl"; });
+    nurA.slice(0, na).forEach((r) => { r.status = "pa"; });
+  }
   return { sortiert, kap, frei };
 }
-const DRIN = new Set(["liste", "entd", "am"]);
+const DRIN = new Set(["liste", "entd", "am", "beide", "pl", "pa"]);
+const PLATZ = {
+  liste: ["liste", "Liste"], entd: ["entd", "Entdeckung"], am: ["am", "vom AM hinzugefügt"],
+  beide: ["liste", "Liste + AM"], pl: ["liste", "Pilot: nach Liste"], pa: ["am", "Pilot: nach AM"],
+};
 
 // ------------------------------------------------------------ Offertliste zeigen
 function zeigeListe() {
@@ -181,13 +210,16 @@ function zeigeListe() {
   const nk = drin.filter((r) => r.bestandskunde === "nein").length;
   const n10 = naechste.slice(0, 10);
   const plus10 = n10.reduce((s, r) => s + r.chance, 0), plus10w = n10.reduce((s, r) => s + r.erwartet, 0);
+  const amRein = Object.entries(zustand.over).filter(([k, v]) => !k.includes(":") && v === "rein").length;
+  const amRaus = Object.entries(zustand.over).filter(([k, v]) => !k.includes(":") && v === "raus").length;
 
   $("#kpis").innerHTML = `
     <div class="kpi"><b>${drin.length} von ${quartal.rows.length}</b><span>Opportunitäten auf der Liste (Kapazität ${kap})</span></div>
-    <div class="kpi"><b>≈ ${zahl(erwAuf)} Aufträge</b><span>erwartet mit dieser Liste – statt ≈ ${zahl(zufall)} bei zufälliger Auswahl</span></div>
+    <div class="kpi"><b>≈ ${zahl(erwAuf)} Aufträge</b><span>erwartet laut Modell – statt ≈ ${zahl(zufall)} bei zufälliger Auswahl</span></div>
     <div class="kpi"><b>${chf(erwWert)}</b><span>erwarteter Auftragswert (5 Jahre) der Liste</span></div>
     <div class="kpi"><b>${nk}</b><span>Neukunden auf der Liste, davon ${sortiert.filter((r) => r.status === "entd").length} über Entdeckungsplätze</span></div>
-    <div class="kpi gold"><b>+ ${zahl(plus10, 1)} Aufträge</b><span>brächten 10 Offerten mehr (≈ ${chf(plus10w)} erwarteter Wert) – Grundlage für die Frage nach mehr Kapazität <span class="info" data-info="Summe der Gewinnchancen der nächsten 10 Opportunitäten unter dem Schnitt. So sieht man, was eine grössere Kapazität im Offert-Team bringen würde.">?</span></span></div>`;
+    <div class="kpi gold"><b>+ ${zahl(plus10, 1)} Aufträge</b><span>brächten 10 Offerten mehr (≈ ${chf(plus10w)} erwarteter Wert) – Grundlage für die Frage nach mehr Kapazität <span class="info" data-info="Summe der Gewinnchancen der nächsten 10 Opportunitäten unter dem Schnitt. So sieht man, was eine grössere Kapazität im Offert-Team bringen würde.">?</span></span></div>
+    <div class="kpi"><b>${amRein} / ${amRaus}</b><span>Fälle von Account Managern hinzugefügt / herausgenommen – zeigt, wo Erfahrung und Liste auseinandergehen</span></div>`;
 
   const ansicht = $("#ansicht .an").dataset.v, typ = $("#f-typ").value, q = $("#suche").value.trim().toLowerCase();
   const pilot = $("#pilot-spalten").checked;
@@ -195,13 +227,12 @@ function zeigeListe() {
     (ansicht === "alle" || (ansicht === "liste" ? DRIN.has(r.status) : !DRIN.has(r.status)));
   const oben = drin.filter(passt), unten = sortiert.filter((r) => !DRIN.has(r.status)).filter(passt);
 
-  const kopf = `<thead><tr><th>Rang</th><th>Gemeinde</th><th>Typ</th><th>Produkt · Quelle</th><th>Gewinnchance</th>
+  const kopf = `<thead><tr><th>Priorität</th><th>Gemeinde</th><th>Typ</th><th>Produkt · Quelle</th><th>Gewinnchance</th>
     <th>Offertwert<br><span style="font-weight:400">CHF 1'000, Bandbreite</span></th><th>Erw. Wert</th><th>Warum?</th><th>Platz / Weg</th><th>Account Manager</th>
     ${pilot ? "<th>AM hätte gewählt</th><th>Ergebnis</th>" : ""}</tr></thead>`;
   const zeile = (r) => {
     const t = I.typen[r.gemeindetyp];
-    const platz = { liste: '<span class="marke liste">Liste</span>', entd: '<span class="marke entd">Entdeckung</span>',
-      am: '<span class="marke am">vom AM hinzugefügt</span>' }[r.status] || `<span class="klein">${esc(weg(r))}</span>`;
+    const platz = PLATZ[r.status] ? `<span class="marke ${PLATZ[r.status][0]}">${PLATZ[r.status][1]}</span>` : `<span class="klein">${esc(weg(r))}</span>`;
     const ov = zustand.over[r.id];
     const knopf = r.stadt ? "" : DRIN.has(r.status)
       ? `<button class="mini" data-act="raus" data-id="${esc(r.id)}">herausnehmen</button>`
@@ -247,11 +278,12 @@ function meldung(art, html) {
 
 function exportiere() {
   const { sortiert } = auswahl();
-  const sp = ["rang", "id", "gemeindename", "kanton", "gemeindetyp", "einwohner", "produktlinie", "quelle", "verfahren", "bestandskunde",
+  const sp = ["rang", "id", "bfs_nr", "gemeindename", "kanton", "sprachregion", "gemeindetyp", "einwohner", "produktlinie", "quelle", "verfahren", "bestandskunde", "kontakte_12m",
     "gewinnchance_pct", "offertwert_chf1000", "bandbreite_von", "bandbreite_bis", "erwarteter_wert_chf1000", "platz", "weg", "begruendung",
     "am_entscheid", "am_grund", "am_haette_gewaehlt", "ergebnis"];
-  const platzName = { liste: "Liste", entd: "Entdeckung", am: "vom AM hinzugefügt", unter: "unter dem Schnitt", raus: "vom AM herausgenommen", stadt: "ausgeschlossen" };
-  const z = sortiert.map((r) => [r.rang, r.id, r.gemeindename, r.kanton || "", r.gemeindetyp, r.einwohner, r.produktlinie, r.quelle, r.verfahren, r.bestandskunde,
+  const platzName = { ...Object.fromEntries(Object.entries(PLATZ).map(([k, v]) => [k, v[1]])), unter: "unter dem Schnitt", raus: "vom AM herausgenommen", stadt: "ausgeschlossen" };
+  sp[0] = "prioritaet";
+  const z = sortiert.map((r) => [r.rang, r.id, r.bfs_nr || "", r.gemeindename, r.kanton || "", r.sprachregion, r.gemeindetyp, r.einwohner, r.produktlinie, r.quelle, r.verfahren, r.bestandskunde, r.kontakte_12m,
     (r.chance * 100).toFixed(1), r.wert.toFixed(0), r.unten.toFixed(0), r.oben.toFixed(0), r.erwartet.toFixed(0), platzName[r.status],
     DRIN.has(r.status) ? "" : weg(r), grund(r), zustand.over[r.id] || "", zustand.over[r.id + ":grund"] || "", zustand.am[r.id] ? "ja" : "", zustand.erg[r.id] || ""]);
   const csv = "﻿" + [sp, ...z].map((zeile) => zeile.map((f) => /[;"\n]/.test(String(f)) ? `"${String(f).replace(/"/g, '""')}"` : f).join(";")).join("\r\n");
@@ -273,12 +305,18 @@ function baueGemeinden() {
   fuelle($("#g-sprache"), ["Deutsch", "Französisch", "Italienisch"]);
   fuelle($("#g-kanton"), [...new Set(GEM.map((g) => g.kanton))].sort());
 
+  // Schulbau-Signal für Campus (Frage von Reto Bürgisser): viele Neubauten UND viele Junge
+  const quantil = (arr, q) => { const s = [...arr].sort((a, b) => a - b); return s[Math.floor(q * (s.length - 1))]; };
+  const qNeu = quantil(GEM.map((g) => g.neubau), 0.75), qJung = quantil(GEM.map((g) => g.jung), 0.5);
+  GEM.forEach((g) => { g.signal = g.neubau >= qNeu && g.jung >= qJung; });
+  $("#signal-regel").textContent = `Schulbau-Signal: mindestens ${zahl(qNeu, 1)} neue Wohnungen pro 1'000 Einwohner (oberstes Viertel) und mindestens ${zahl(qJung, 1)} % Kinder und Jugendliche (obere Hälfte). Ein Hinweis auf Bedarf – kein Wissen über geplante Schulhäuser.`;
+
   $("#typkarten").innerHTML = ["A", "B", "C", "D"].map((t) => {
     const T = I.typen[t], alle = GEM.filter((g) => g.typ === t);
     const romandie = alle.filter((g) => g.sprache === "Französisch").length / alle.length;
     return `<div class="karte" style="border-top:5px solid ${T.farbe}"><b class="t">${t} · ${esc(T.name)}</b>
       ${zahl(alle.length)} Gemeinden (${pct(alle.length / GEM.length)}) · ${pct(M.mix.gemeindetyp[t])} unserer Offerten · <b>${pct(M.anteile.gemeindetyp[t].ja)} gewonnen</b><br>
-      <span class="klein">Romandie: ${pct(romandie)} · Produkt zuerst: ${esc(T.produkte[0])}</span>
+      <span class="klein">Romandie: ${pct(romandie)} · Produkt zuerst: ${esc(T.produkte[0])} · Schulbau-Signal: ${alle.filter((g) => g.signal).length}</span>
       <p style="margin:6px 0 0">${esc(T.handlung)}</p></div>`;
   }).join("");
   zeigeGemeinden();
@@ -288,22 +326,24 @@ function zeigeGemeinden() {
   const f = { typ: $("#g-typ").value, sp: $("#g-sprache").value, ka: $("#g-kanton").value, st: $("#g-status").value, q: $("#g-suche").value.trim().toLowerCase() };
   const liste = GEM.filter((g) => (!f.typ || g.typ === f.typ) && (!f.sp || g.sprache === f.sp) && (!f.ka || g.kanton === f.ka) &&
     (!f.st || gStatus(g) === f.st) && (!f.q || g.name.toLowerCase().includes(f.q)))
-    .sort((a, b) => a.typ.localeCompare(b.typ) || a.name.localeCompare(b.name, "de"));
-  $("#g-anzahl").textContent = `${zahl(liste.length)} Gemeinden`;
+    .sort((a, b) => a.typ.localeCompare(b.typ) || (b.signal - a.signal) || a.name.localeCompare(b.name, "de"));
+  $("#g-anzahl").textContent = `${zahl(liste.length)} Gemeinden · davon ${zahl(liste.filter((g) => g.signal).length)} mit Schulbau-Signal (zuoberst je Typ)`;
   const st = { kunde: "Kundin", offerte: "Offerte ohne Auftrag", nie: "noch nie offeriert" };
-  $("#gemeinden").innerHTML = `<thead><tr><th>Gemeinde</th><th>Kanton</th><th>Sprache</th><th>Typ</th><th>Status</th><th>Hat</th><th>Nächstes Produkt</th><th>Handlung</th></tr></thead><tbody>` +
+  $("#gemeinden").innerHTML = `<thead><tr><th>Gemeinde</th><th>Kanton</th><th>Sprache</th><th>Typ</th><th>Status</th><th>Hat</th><th>Nächstes Produkt</th><th>Schulbau-Signal</th><th>Handlung</th></tr></thead><tbody>` +
     liste.slice(0, gZeigen).map((g) => {
       const T = I.typen[g.typ];
       return `<tr><td><b>${esc(g.name)}</b>${g.einwohner ? `<br><span class="klein">${zahl(g.einwohner)} Einw.</span>` : ""}</td><td>${esc(g.kanton)}</td><td>${esc(g.sprache)}</td>
       <td><span class="chip" style="background:${T.farbe}">${g.typ} · ${esc(T.kurz)}</span></td><td>${st[gStatus(g)]}</td>
-      <td>${g.produkte.map(esc).join(", ") || "–"}</td><td><b>${esc(naechstes(g))}</b></td><td class="begr">${esc(T.handlung)}</td></tr>`;
+      <td>${g.produkte.map(esc).join(", ") || "–"}</td><td><b>${esc(naechstes(g))}</b></td>
+      <td>${g.signal ? `<span class="marke entd">ja</span><br><span class="klein">${zahl(g.neubau, 1)} Neubauten/1'000 · ${zahl(g.jung, 1)} % Junge</span>` : "–"}</td>
+      <td class="begr">${esc(T.handlung)}</td></tr>`;
     }).join("") + "</tbody>";
   $("#g-mehr").style.display = liste.length > gZeigen ? "" : "none";
 }
 
 // ------------------------------------------------------------ Rückblick & Pilot
 function baueRueckblick() {
-  const k = M.kennzahlen, lk = k.lernkosten;
+  const k = M.kennzahlen, lk = k.lernkosten, nu = k.nutzen;
   const breite = 300, max = Math.max(k.auftraege_liste, 40);
   const balken = (y, wert, farbe, text) => `<text x="0" y="${y + 18}" font-size="17">${text}</text>
     <rect x="190" y="${y}" width="${(wert / max) * breite}" height="24" rx="4" fill="${farbe}"></rect>
@@ -334,35 +374,57 @@ function baueRueckblick() {
     <div class="merke"><b>Entdeckungsplätze: was sie kosten, was sie bringen.</b> Mit ${lk.liste_plaetze} Listenplätzen und ${lk.entdeckung_plaetze} Plätzen für Neukunden
       werden es im Schnitt <b>${zahl(lk.auftraege_mit_entdeckung, 1)} statt ${zahl(lk.auftraege_nur_liste, 1)} Aufträge</b> pro Quartal
       (Unterschied je nach Aufteilung ${zahl(lk.kosten_spanne[0], 1)} bis ${zahl(lk.kosten_spanne[1], 1)}).
-      Dafür offerieren wir <b>${zahl(lk.neukunden_mit_entdeckung)} statt ${zahl(lk.neukunden_nur_liste)} Neukunden</b> pro Quartal – und das Modell lernt Fälle kennen, die es bisher nie gesehen hat.</div>`;
+      Dafür offerieren wir <b>${zahl(lk.neukunden_mit_entdeckung)} statt ${zahl(lk.neukunden_nur_liste)} Neukunden</b> pro Quartal – und das Modell lernt Fälle kennen, die es bisher nie gesehen hat.</div>
+    <h3>Was das in Franken heisst</h3>
+    <div class="zwei">
+      <div class="karte"><b class="t">Mehrumsatz gegenüber zufälliger Auswahl</b>
+        <div style="font-size:26px;font-weight:700;color:var(--blau)">CHF ${zahl(nu.pro_jahr_chf1000[0] / 1000, 1)} bis ${zahl(nu.pro_jahr_chf1000[1] / 1000, 1)} Mio. pro Jahr</div>
+        <p>Die Liste bringt ${zahl(nu.plus_auftraege_q[0])} bis ${zahl(nu.plus_auftraege_q[1])} Aufträge mehr pro Quartal. Diese zusätzlichen Aufträge sind <b>kleiner als der Durchschnitt</b>
+        (rund ${chf(nu.wert_zusatzauftrag)} statt ${chf(nu.wert_durchschnitt)} über 5 Jahre): Hohe Gewinnchance und grosser Auftrag gehen auseinander.
+        Weil die Verträge 5 Jahre laufen, verteilen wir den Wert auf 5 Jahre – das ist der Mehrumsatz pro Jahr und Offert-Jahrgang (Umsatz 2025: CHF 64 Mio.).</p></div>
+      <div class="karte" style="border-left:5px solid var(--gold)"><b class="t">Ehrlich bleiben</b>
+        <ul style="margin:4px 0;padding-left:20px">
+          <li>Verglichen wird mit <b>Zufall</b>. Gegenüber der heutigen Auswahl nach Erfahrung ist der Gewinn vermutlich kleiner – genau das misst der Pilot.</li>
+          <li>Bestandskunden gewinnen auch ohne Liste oft. Diesen Vorsprung schreiben wir nicht dem Modell gut.</li>
+          <li>Die Spanne kommt aus sechs verschiedenen Aufteilungen der Daten. Eine einzelne Zahl wäre genauer, als wir es wissen.</li>
+        </ul></div>
+    </div>`;
   zeigePilot();
 }
 
 function zeigePilot() {
   const { sortiert } = quartal.rows.length ? auswahl() : { sortiert: [] };
+  // Nur offerierte Fälle haben ein Ergebnis. Darum zählen die AM-Fälle erst, wenn sie im Pilotmodus auch offeriert werden.
   const gruppen = { "Liste und AM": [], "nur Liste": [], "nur AM": [] };
+  let ohneOfferte = 0;
   sortiert.forEach((r) => {
-    const l = DRIN.has(r.status), a = !!zustand.am[r.id];
-    if (l && a) gruppen["Liste und AM"].push(r); else if (l) gruppen["nur Liste"].push(r); else if (a) gruppen["nur AM"].push(r);
+    const off = DRIN.has(r.status), a = !!zustand.am[r.id];
+    if (!off) { if (a) ohneOfferte++; return; }
+    if (r.status === "pa" || r.status === "am") gruppen["nur AM"].push(r);
+    else if (a) gruppen["Liste und AM"].push(r);
+    else gruppen["nur Liste"].push(r);
   });
   const eingetragen = Object.values(zustand.erg).filter(Boolean).length;
   $("#pilot").innerHTML = `
     <div class="zwei">
       <div class="karte"><b class="t">So messen wir im Pilot</b><ol style="margin:4px 0;padding-left:20px">
         <li>Vor dem Blick auf die Liste markieren die Account Manager, welche Opportunitäten sie offerieren würden («AM hätte gewählt»).</li>
-        <li>Das Team offeriert nach der Liste; Fälle, bei denen der AM widerspricht, werden mit Grund hinzugefügt oder herausgenommen.</li>
-        <li>Nach jedem Entscheid der Gemeinde wird das Ergebnis eingetragen.</li>
+        <li><b>Pilotmodus</b> einschalten: Fälle, die Liste und AM beide wählen, werden offeriert. Die restlichen Plätze teilen sich <b>je zur Hälfte</b> die besten Fälle «nur Liste» und «nur AM». Nur so gibt es für beide Seiten ein Ergebnis.</li>
+        <li>Nach jedem Entscheid der Gemeinde wird das Ergebnis eingetragen – in der Liste oder über den Export und erneuten Upload.</li>
         <li><b>Zwei Quartale</b>, weil 80 Offerten pro Quartal stark schwanken (etwa ±5 Aufträge) und Gemeinden oft erst nach Monaten entscheiden.</li>
         <li>Die Entscheidungszahl wird <b>vorher</b> mit der Geschäftsleitung vereinbart: Gewinnquote «nur Liste» gegen «nur AM».</li></ol></div>
       <div class="karte"><b class="t">Stand im aktuellen Quartal</b>
         <p class="klein">Pilot-Spalten in der Offertliste einschalten, um «AM hätte gewählt» und das Ergebnis einzutragen. ${eingetragen} Ergebnisse eingetragen.</p>
-        <table class="t"><thead><tr><th>Gruppe</th><th>Fälle</th><th>gewonnen</th><th>verloren</th><th>Gewinnquote</th></tr></thead><tbody>
+        <table class="t"><thead><tr><th>Offeriert, weil …</th><th>Fälle</th><th>gewonnen</th><th>verloren</th><th>Gewinnquote</th></tr></thead><tbody>
         ${Object.entries(gruppen).map(([n, rs]) => {
           const g = rs.filter((r) => zustand.erg[r.id] === "gewonnen").length, v = rs.filter((r) => zustand.erg[r.id] === "verloren").length;
           return `<tr><td>${n}</td><td class="n">${rs.length}</td><td class="n">${g}</td><td class="n">${v}</td><td class="n">${g + v ? pct(g / (g + v)) : "–"}</td></tr>`;
         }).join("")}</tbody></table>
-        <p class="klein">Spannend ist die Zeile «nur AM» gegen «nur Liste»: Dort unterscheiden sich Erfahrung und Modell.</p></div>
-    </div>`;
+        <p class="klein">Entscheidend ist «nur Liste» gegen «nur AM»: Dort unterscheiden sich Modell und Erfahrung.
+        ${ohneOfferte ? `<br><b>${ohneOfferte} Fälle hätte der AM gewählt, sie werden aber nicht offeriert</b> – ohne Pilotmodus fehlt für sie das Ergebnis.` : ""}</p></div>
+    </div>
+    <h3>Was wir von der Geschäftsleitung brauchen</h3>
+    <div class="merke"><ol style="margin:0;padding-left:20px">${I.antrag.map((a) => `<li>${esc(a)}</li>`).join("")}</ol></div>`;
 }
 
 // ------------------------------------------------------------ Herleitung
@@ -386,7 +448,7 @@ $("#ansicht").addEventListener("click", (e) => {
   const b = e.target.closest("button"); if (!b) return;
   $$("#ansicht button").forEach((x) => x.classList.toggle("an", x === b)); zeigeListe();
 });
-["#kap", "#entd", "#f-typ", "#suche", "#pilot-spalten"].forEach((s) => $(s).addEventListener("input", () => quartal.rows.length && zeigeListe()));
+["#kap", "#entd", "#f-typ", "#suche", "#pilot-spalten", "#pilotmodus"].forEach((s) => $(s).addEventListener("input", () => quartal.rows.length && zeigeListe()));
 $("#liste").addEventListener("click", (e) => {
   const b = e.target.closest("button[data-act]"); if (!b) return;
   const id = b.dataset.id, act = b.dataset.act;
@@ -404,6 +466,7 @@ $("#liste").addEventListener("change", (e) => {
   else if (t.dataset.erg) zustand.erg[t.dataset.erg] = t.value;
   else return;
   speichere();
+  if (t.dataset.am && $("#pilotmodus").checked) zeigeListe();
 });
 $("#export").addEventListener("click", exportiere);
 $("#datei").addEventListener("change", (e) => leseDatei(e.target.files[0]));
@@ -420,13 +483,22 @@ addEventListener("dragover", (e) => e.preventDefault());
 addEventListener("drop", (e) => { e.preventDefault(); zieh = 0; document.body.classList.remove("ziehen"); leseDatei(e.dataTransfer.files[0]); });
 ["#g-typ", "#g-sprache", "#g-kanton", "#g-status", "#g-suche"].forEach((s) => $(s).addEventListener("input", () => { gZeigen = 100; zeigeGemeinden(); }));
 $("#g-mehr").addEventListener("click", () => { gZeigen += 200; zeigeGemeinden(); });
-$("#kampagne").addEventListener("click", () => { $("#g-typ").value = "C"; $("#g-status").value = "nie"; $("#g-sprache").value = ""; $("#g-kanton").value = ""; gZeigen = 100; zeigeGemeinden(); });
-document.addEventListener("mouseover", (e) => {
-  const i = e.target.closest(".info"), tip = $("#tip");
+const gFilter = (typ, status) => { $("#g-typ").value = typ; $("#g-status").value = status; $("#g-sprache").value = ""; $("#g-kanton").value = ""; $("#g-suche").value = ""; gZeigen = 100; zeigeGemeinden(); };
+$("#kampagne").addEventListener("click", () => gFilter("C", "nie"));
+$("#crosssell").addEventListener("click", () => gFilter("", "kunde"));
+// Info-Hinweise: mit der Maus und per Tippen (Handy)
+function zeigeTip(i) {
+  const tip = $("#tip");
   if (!i) { tip.style.display = "none"; return; }
   tip.textContent = i.dataset.info; tip.style.display = "block";
   const r = i.getBoundingClientRect();
-  tip.style.left = Math.min(r.left, innerWidth - 340) + "px"; tip.style.top = r.bottom + 6 + "px";
+  tip.style.left = Math.max(8, Math.min(r.left, innerWidth - 330)) + "px"; tip.style.top = r.bottom + 6 + "px";
+}
+document.addEventListener("mouseover", (e) => zeigeTip(e.target.closest(".info")));
+document.addEventListener("click", (e) => {
+  const i = e.target.closest(".info");
+  if (i) e.preventDefault();   // sonst löst das umgebende <label> einen zweiten Klick aus
+  zeigeTip(i);
 });
 try { const t = localStorage.getItem("radar:tab"); if (t) $(`#tabs button[data-tab="${t}"]`)?.click(); } catch (e) { /* egal */ }
 start();

@@ -12,8 +12,8 @@ Leistungsnachweis 2 · CAS AI in Product Management HS 26 · Gruppe 3 (Hunkeler,
 | Ansicht | Zweck |
 |---|---|
 | Offertliste | Welche 80 von 320 Opportunitäten offerieren wir? Rangliste nach Gewinnchance, 70 Listen- + 10 Entdeckungsplätze, Begründung pro Fall, Weg für jeden Fall unter dem Schnitt, Account Manager können Fälle mit Grund hinzufügen oder herausnehmen, Export. |
-| Gemeinden | Alle 2'172 Gemeinden mit Typ, Kundenstatus, nächstem Produkt und Handlung. Filter «Kampagne: Typ C ohne Offerte». |
-| Rückblick & Pilot | Was die Liste auf 900 Prüf-Offerten gebracht hätte (≈ 34 statt 14 Aufträge), Kosten der Entdeckungsplätze, Pilotdesign und Auswertung Liste gegen AM. |
+| Gemeinden | Alle 2'172 Gemeinden mit Typ, Kundenstatus, nächstem Produkt, Schulbau-Signal und Handlung. Filter «Kampagne: Typ C ohne Offerte» und «Kundinnen: nächstes Produkt». |
+| Rückblick & Pilot | Was die Liste auf 900 Prüf-Offerten gebracht hätte (≈ 34 statt 14 Aufträge, CHF 1,7–2,2 Mio. Mehrumsatz pro Jahr gegenüber Zufall), Kosten der Entdeckungsplätze, Pilotmodus (Streitfälle je zur Hälfte nach Liste und nach AM), Auswertung und Antrag an die Geschäftsleitung. Exportierte Listen mit Ergebnissen lassen sich wieder hochladen. |
 | So rechnet der Radar | Tabelle «Von der Analyse zum Tool», Modelle, Grenzen. |
 
 ## Aufbau

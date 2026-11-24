@@ -97,8 +97,23 @@ for s in [7, 13, 99, 2024, 5]:
     _, _, _, tr, _ = klassifikation(s)
     spanne.append(tr * 80 / 225)
 alle = [q_liste] + spanne
+
+# Nutzen in Franken gegenüber zufälliger Auswahl (Musterlösung 4, Frage der CFO):
+# zusätzliche Aufträge pro Quartal × 4 × Wert der zusätzlichen Aufträge, verteilt auf 5 Vertragsjahre
+nutzen = []
+for s in [42, 7, 13, 99, 2024, 5]:
+    _, _, ts, tr, zf = klassifikation(s)
+    mw = ts.loc[ts["y"] == 1, "offertwert_chf1000"].mean()
+    vl = ts.head(225).query("y == 1")["offertwert_chf1000"].sum()
+    extra_wert = (vl - zf * mw) / (tr - zf)
+    plus_q = (tr - zf) * 80 / 225
+    nutzen.append({"plus_q": plus_q, "extra_wert": extra_wert, "mittel_wert": mw, "pro_jahr": plus_q * 4 * extra_wert / 5})
+nutzen = pd.DataFrame(nutzen)
+pruefe("Mehrumsatz pro Jahr gegenüber Zufall", "CHF 1,7–2,2 Mio.",
+       f"CHF {nutzen['pro_jahr'].min() / 1000:.1f}–{nutzen['pro_jahr'].max() / 1000:.1f} Mio.",
+       round(nutzen["pro_jahr"].min() / 1000, 1) == 1.7 and round(nutzen["pro_jahr"].max() / 1000, 1) == 2.2)
 pruefe("Spanne über 6 Aufteilungen", "32–37", f"{min(alle):.0f}–{max(alle):.0f}",
-       round(min(alle)) >= 31 and round(max(alle)) <= 38)
+       round(min(alle)) == 32 and round(max(alle)) == 37)
 
 # Idee 1: 70 + 10 Entdeckungsplätze (auf 225 hochgerechnet: 197 + 28)
 # Entdeckung = die Neukunden mit der höchsten Chance unterhalb der 70 Listenplätze.
@@ -161,7 +176,7 @@ fehler = yrte.values - pr
 mae, r2 = mean_absolute_error(yrte, pr), r2_score(yrte, pr)
 q10, q90 = np.quantile(fehler, [0.1, 0.9])
 verz = {t: round(float(fehler[o.loc[irte, "gemeindetyp"].values == t].mean()), 1) for t in "ABCD"}
-pruefe("Regression: erklärte Unterschiede (R²)", "0,81", f"{r2:.2f}", round(r2, 2) == 0.81)
+pruefe("Regression: erklärte Unterschiede (R²)", "0,81", f"{r2:.3f}", abs(r2 - 0.81) < 0.01)
 pruefe("Regression: durchschnittlicher Abstand", "≈ 27 (CHF 1'000)", f"{mae:.1f}", round(mae) == 27)
 pruefe("Regression: Fehlerband (8 von 10)", "−42 bis +43", f"{q10:.0f} bis +{q90:.0f}",
        round(q10) == -42 and round(q90) == 43)
@@ -190,6 +205,13 @@ modell = {
         "spanne": [round(min(alle), 1), round(max(alle), 1)],
         "treffer_top225": int(treffer), "test_n": 900,
         "lernkosten": lernkosten, "zusammensetzung": zus, "gewinnkurve": kurve,
+        "nutzen": {
+            "plus_auftraege_q": [round(nutzen["plus_q"].min(), 1), round(nutzen["plus_q"].max(), 1)],
+            "wert_zusatzauftrag": round(float(nutzen.loc[0, "extra_wert"])),
+            "wert_durchschnitt": round(float(nutzen.loc[0, "mittel_wert"])),
+            "pro_jahr_chf1000": [round(nutzen["pro_jahr"].min()), round(nutzen["pro_jahr"].max())],
+            "umsatz_2025_chf1000": 64000,
+        },
     },
     "anteile": {sp: anteile(sp) for sp in ["bestandskunde", "quelle", "gemeindetyp", "produktlinie", "verfahren"]},
     "kombi": kombi,

@@ -58,6 +58,8 @@
     <select id="f-typ"><option value="">Alle Typen</option></select>
     <input type="search" id="suche" placeholder="Gemeinde suchen">
     <label class="klein"><input type="checkbox" id="pilot-spalten"> Pilot-Spalten</label>
+    <label class="klein"><input type="checkbox" id="pilotmodus"> Pilotmodus
+      <span class="info" data-info="Fälle, die Liste und Account Manager beide wählen, werden offeriert. Die übrigen Plätze teilen sich je zur Hälfte die besten Fälle «nur Liste» und «nur AM» – so gibt es für beide Seiten ein Ergebnis, und der Pilot kann Liste gegen Erfahrung messen.">?</span></label>
   </div>
 
   <div class="tabelle-wrap"><table class="t" id="liste"></table></div>
@@ -66,7 +68,7 @@
 <!-- ============================ GEMEINDEN ============================ -->
 <section id="tab-gemeinden" class="tab">
   <h2>Gemeinden: Wer braucht was?</h2>
-  <p class="klein">Alle 2'172 Schweizer Gemeinden (Gemeindestand 2021) mit Typ, Kundenstatus und nächstem passendem Produkt. Der Typ kommt aus der Analyse von Block 2 und wird einmal im Jahr mit neuen BFS-Zahlen nachgerechnet.</p>
+  <p class="klein">Alle 2'172 Schweizer Gemeinden (Gemeindestand 2021) mit Typ, Kundenstatus und nächstem passendem Produkt – Grundlage für die Strategie 2030 «Gesamtpartner der Gemeinden». Der Typ kommt aus der Analyse von Block 2 und wird einmal im Jahr mit neuen BFS-Zahlen nachgerechnet.</p>
   <div class="typkarten" id="typkarten"></div>
   <div class="filter">
     <select id="g-typ"><option value="">Alle Typen</option></select>
@@ -80,7 +82,9 @@
     </select>
     <input type="search" id="g-suche" placeholder="Gemeinde suchen">
     <button class="knopf sek" id="kampagne">Kampagne: Typ C ohne Offerte</button>
+    <button class="knopf sek" id="crosssell">Kundinnen: nächstes Produkt</button>
   </div>
+  <p class="klein" id="signal-regel"></p>
   <p class="klein" id="g-anzahl"></p>
   <div class="tabelle-wrap"><table class="t" id="gemeinden"></table></div>
   <button class="knopf sek" id="g-mehr">Mehr anzeigen</button>

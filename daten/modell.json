@@ -168,7 +168,20 @@
    0.994,
    1.0,
    1.0
-  ]
+  ],
+  "nutzen": {
+   "plus_auftraege_q": [
+    20.0,
+    23.2
+   ],
+   "wert_zusatzauftrag": 106,
+   "wert_durchschnitt": 128,
+   "pro_jahr_chf1000": [
+    1701,
+    2193
+   ],
+   "umsatz_2025_chf1000": 64000
+  }
  },
  "anteile": {
   "bestandskunde": {
