@@ -3,121 +3,145 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="GovTech-Marktradar der Gemanda AG: welche Opportunitäten zuerst offeriert werden und welche Gemeinden welchen Bedarf haben.">
+<meta name="theme-color" content="#0b3a5c">
 <title>GovTech-Marktradar · Gemanda</title>
-<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b3a5c'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='%23fff' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='4' fill='none' stroke='%23fff' stroke-width='2'/%3E%3Cpath d='M16 16 L24 9' stroke='%23c9962b' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css?v=4">
 </head>
 <body>
+<a class="skip" href="#inhalt">Zum Inhalt springen</a>
 <header class="kopf">
   <div class="kopf-in">
-    <div>
-      <div class="ob">Gemanda AG · MVP</div>
-      <h1>GovTech-Marktradar</h1>
+    <div class="marke-titel">
+      <span class="logo" aria-hidden="true">
+        <svg width="22" height="22" viewBox="0 0 32 32"><circle cx="16" cy="16" r="11" fill="none" stroke="#fff" stroke-width="2"/><circle cx="16" cy="16" r="5" fill="none" stroke="#fff" stroke-width="2"/><path d="M16 16 L25 8" stroke="#c9962b" stroke-width="3" stroke-linecap="round"/></svg>
+      </span>
+      <div>
+        <div class="ob">Gemanda AG · MVP</div>
+        <h1>GovTech-Marktradar</h1>
+      </div>
     </div>
-    <nav id="tabs" role="tablist">
-      <button role="tab" data-tab="liste" aria-selected="true">Offertliste</button>
-      <button role="tab" data-tab="gemeinden">Gemeinden</button>
-      <button role="tab" data-tab="pilot">Rückblick &amp; Pilot</button>
-      <button role="tab" data-tab="herleitung">So rechnet der Radar</button>
+    <nav id="tabs" role="tablist" aria-label="Ansichten">
+      <button role="tab" id="t-liste" data-tab="liste" aria-controls="tab-liste" aria-selected="true">Offertliste</button>
+      <button role="tab" id="t-gemeinden" data-tab="gemeinden" aria-controls="tab-gemeinden" aria-selected="false" tabindex="-1">Gemeinden</button>
+      <button role="tab" id="t-pilot" data-tab="pilot" aria-controls="tab-pilot" aria-selected="false" tabindex="-1">Rückblick &amp; Pilot</button>
+      <button role="tab" id="t-herleitung" data-tab="herleitung" aria-controls="tab-herleitung" aria-selected="false" tabindex="-1">So rechnet der Radar</button>
     </nav>
   </div>
 </header>
-<div class="hinweis-band" id="datenhinweis"></div>
+<div class="hinweis-band"><p id="datenhinweis"></p></div>
 
-<main>
+<main id="inhalt" tabindex="-1">
 <!-- ============================ OFFERTLISTE ============================ -->
-<section id="tab-liste" class="tab aktiv">
+<section id="tab-liste" class="tab aktiv" role="tabpanel" aria-labelledby="t-liste">
   <div class="zeile-oben">
     <div>
       <h2 id="quartal-titel">Offertliste</h2>
-      <p class="klein" id="quartal-quelle"></p>
+      <p class="klein" id="quartal-quelle">Daten werden geladen …</p>
     </div>
     <div class="knoepfe">
-      <label class="knopf sek" for="datei">Quartal hochladen (CSV)</label>
+      <button class="knopf sek" id="hochladen" type="button">Quartal hochladen</button>
       <input type="file" id="datei" accept=".csv,text/csv" hidden>
       <a class="knopf sek" href="daten/demo_quartal_2027Q1.csv" download="vorlage_opportunitaeten.csv">Vorlage</a>
-      <button class="knopf" id="export">Liste exportieren</button>
+      <button class="knopf" id="export" type="button">Liste exportieren</button>
     </div>
   </div>
-  <div id="drop" class="drop">CSV-Datei hierher ziehen, um ein neues Quartal zu laden</div>
-  <div id="meldungen"></div>
+  <div id="drop" class="drop">CSV-Datei hier loslassen, um ein neues Quartal zu laden</div>
+  <div id="meldungen" aria-live="polite"></div>
 
   <div class="regler">
-    <label>Offerten pro Quartal <input type="number" id="kap" min="10" max="320" value="80"></label>
-    <label>davon Entdeckungsplätze <input type="number" id="entd" min="0" max="40" value="10">
-      <span class="info" data-info="Plätze für Neukunden mit der besten Chance unter dem Schnitt. Das Modell kennt nur Fälle, bei denen bisher etwas unternommen wurde – so lernt es Neues. Kostet im Rückblick im Schnitt unter einem Auftrag pro Quartal.">?</span></label>
+    <label for="kap">Offerten pro Quartal <input class="feld" type="number" id="kap" min="10" max="320" value="80" inputmode="numeric"></label>
+    <label for="entd">davon Entdeckungsplätze <input class="feld" type="number" id="entd" min="0" max="40" value="10" inputmode="numeric">
+      <span class="info" tabindex="0" role="button" aria-label="Erklärung Entdeckungsplätze" data-info="Plätze für Neukunden mit der besten Chance unter dem Schnitt. Das Modell kennt nur Fälle, bei denen bisher etwas unternommen wurde – so lernt es Neues. Kostet im Rückblick im Schnitt unter einem Auftrag pro Quartal.">?</span></label>
   </div>
 
-  <div class="kpis" id="kpis"></div>
+  <div class="kpis" id="kpis" aria-live="polite"><div class="lade">Modelle und Demo-Quartal werden geladen …</div></div>
 
-  <div class="filter">
-    <div class="seg" id="ansicht">
-      <button data-v="alle" class="an">Alle</button>
-      <button data-v="liste">Auf der Liste</button>
-      <button data-v="unter">Unter dem Schnitt</button>
+  <div class="filter" role="search" aria-label="Offertliste filtern">
+    <div class="seg" id="ansicht" role="group" aria-label="Ansicht">
+      <button data-v="alle" class="an" aria-pressed="true" type="button">Alle</button>
+      <button data-v="liste" aria-pressed="false" type="button">Auf der Liste</button>
+      <button data-v="unter" aria-pressed="false" type="button">Unter dem Schnitt</button>
     </div>
-    <select id="f-typ"><option value="">Alle Typen</option></select>
-    <input type="search" id="suche" placeholder="Gemeinde suchen">
-    <label class="klein"><input type="checkbox" id="pilot-spalten"> Pilot-Spalten</label>
-    <label class="klein"><input type="checkbox" id="pilotmodus"> Pilotmodus
-      <span class="info" data-info="Fälle, die Liste und Account Manager beide wählen, werden offeriert. Die übrigen Plätze teilen sich je zur Hälfte die besten Fälle «nur Liste» und «nur AM» – so gibt es für beide Seiten ein Ergebnis, und der Pilot kann Liste gegen Erfahrung messen.">?</span></label>
+    <select id="f-typ" aria-label="Gemeindetyp"><option value="">Alle Typen</option></select>
+    <input type="search" id="suche" placeholder="Gemeinde suchen" aria-label="Gemeinde suchen">
+    <label class="check"><input type="checkbox" id="pilot-spalten"> Pilot-Spalten</label>
+    <label class="check"><input type="checkbox" id="pilotmodus"> Pilotmodus
+      <span class="info" tabindex="0" role="button" aria-label="Erklärung Pilotmodus" data-info="Fälle, die Liste und Account Manager beide wählen, werden offeriert. Die übrigen Plätze teilen sich je zur Hälfte die besten Fälle «nur Liste» und «nur AM» – so gibt es für beide Seiten ein Ergebnis, und der Pilot kann Liste gegen Erfahrung messen.">?</span></label>
   </div>
 
-  <div class="tabelle-wrap"><table class="t" id="liste"></table></div>
+  <div class="tabelle-wrap"><table class="t" id="liste" aria-label="Offertliste"></table></div>
 </section>
 
 <!-- ============================ GEMEINDEN ============================ -->
-<section id="tab-gemeinden" class="tab">
+<section id="tab-gemeinden" class="tab" role="tabpanel" aria-labelledby="t-gemeinden">
   <h2>Gemeinden: Wer braucht was?</h2>
-  <p class="klein">Alle 2'172 Schweizer Gemeinden (Gemeindestand 2021) mit Typ, Kundenstatus und nächstem passendem Produkt – Grundlage für die Strategie 2030 «Gesamtpartner der Gemeinden». Der Typ kommt aus der Analyse von Block 2 und wird einmal im Jahr mit neuen BFS-Zahlen nachgerechnet.</p>
+  <p class="lead">Alle 2'172 Schweizer Gemeinden (Gemeindestand 2021) mit Typ, Kundenstatus und nächstem passendem Produkt – Grundlage für die Strategie 2030 «Gesamtpartner der Gemeinden». Der Typ kommt aus der Analyse von Block 2 und wird einmal im Jahr mit neuen BFS-Zahlen nachgerechnet.</p>
   <div class="typkarten" id="typkarten"></div>
-  <div class="filter">
-    <select id="g-typ"><option value="">Alle Typen</option></select>
-    <select id="g-sprache"><option value="">Alle Sprachen</option></select>
-    <select id="g-kanton"><option value="">Alle Kantone</option></select>
-    <select id="g-status">
-      <option value="">Alle</option>
+  <div class="filter" role="search" aria-label="Gemeinden filtern">
+    <select id="g-typ" aria-label="Gemeindetyp"><option value="">Alle Typen</option></select>
+    <select id="g-sprache" aria-label="Sprachregion"><option value="">Alle Sprachen</option></select>
+    <select id="g-kanton" aria-label="Kanton"><option value="">Alle Kantone</option></select>
+    <select id="g-status" aria-label="Kundenstatus">
+      <option value="">Alle Kundenstatus</option>
       <option value="kunde">Kundin</option>
       <option value="offerte">Offerte, aber kein Auftrag</option>
       <option value="nie">Noch nie offeriert</option>
     </select>
-    <input type="search" id="g-suche" placeholder="Gemeinde suchen">
-    <button class="knopf sek" id="kampagne">Kampagne: Typ C ohne Offerte</button>
-    <button class="knopf sek" id="crosssell">Kundinnen: nächstes Produkt</button>
+    <input type="search" id="g-suche" placeholder="Gemeinde suchen" aria-label="Gemeinde suchen">
+  </div>
+  <div class="filter">
+    <button class="knopf sek klein-k" id="kampagne" type="button">Kampagne: Typ C ohne Offerte</button>
+    <button class="knopf sek klein-k" id="crosssell" type="button">Kundinnen: nächstes Produkt</button>
   </div>
   <p class="klein" id="signal-regel"></p>
-  <p class="klein" id="g-anzahl"></p>
-  <div class="tabelle-wrap"><table class="t" id="gemeinden"></table></div>
-  <button class="knopf sek" id="g-mehr">Mehr anzeigen</button>
+  <p class="klein" id="g-anzahl" aria-live="polite"></p>
+  <div class="tabelle-wrap"><table class="t" id="gemeinden" aria-label="Gemeinden"></table></div>
+  <p><button class="knopf sek" id="g-mehr" type="button">Mehr anzeigen</button></p>
 </section>
 
 <!-- ============================ PILOT ============================ -->
-<section id="tab-pilot" class="tab">
+<section id="tab-pilot" class="tab" role="tabpanel" aria-labelledby="t-pilot">
   <h2>Rückblick: Was hätte die Liste gebracht?</h2>
-  <p class="klein">Geprüft an 900 Offerten aus der Vergangenheit, die das Modell beim Lernen nie gesehen hat. 80 von 320 sind 25 % – darum zählen wir die Treffer unter den obersten 225 und rechnen auf 80 Offerten um.</p>
+  <p class="lead">Geprüft an 900 Offerten aus der Vergangenheit, die das Modell beim Lernen nie gesehen hat. 80 von 320 sind 25 % – darum zählen wir die Treffer unter den obersten 225 und rechnen auf 80 Offerten um.</p>
   <div id="rueckblick"></div>
-  <h2 style="margin-top:36px">Pilot: Liste gegen Erfahrung</h2>
+  <h2 style="margin-top:40px">Pilot: Liste gegen Erfahrung</h2>
   <div id="pilot"></div>
 </section>
 
 <!-- ============================ HERLEITUNG ============================ -->
-<section id="tab-herleitung" class="tab">
+<section id="tab-herleitung" class="tab" role="tabpanel" aria-labelledby="t-herleitung">
   <h2>Von der Analyse zum Tool</h2>
-  <p class="klein">Jedes Element im Marktradar folgt aus einem Ergebnis unserer Analyse.</p>
-  <div class="tabelle-wrap"><table class="t" id="herleitung"></table></div>
-  <h2 style="margin-top:32px">Was der Radar rechnet</h2>
+  <p class="lead">Jedes Element im Marktradar folgt aus einem Ergebnis unserer Analyse.</p>
+  <div class="tabelle-wrap"><table class="t" id="herleitung" aria-label="Von der Analyse zum Tool"></table></div>
+  <h2 style="margin-top:40px">Was der Radar rechnet</h2>
   <div class="zwei">
     <div class="karte"><b class="t">Gewinnchance</b>Logistische Regression auf 3'000 entschiedenen Offerten 2017–2025. Merkmale bei der Erfassung: Gemeindetyp, Produktlinie, Quelle, Verfahren, Bestandskunde, Kontakte, Sprachregion. Der Offertwert ist kein Merkmal – er steht erst nach der Ausarbeitung fest.</div>
     <div class="karte"><b class="t">Offertwert</b>Lineare Regression: Einwohner, Produktlinie, Bestandskunde, Kontakte. Wir zeigen immer eine Bandbreite – den Bereich, in dem 8 von 10 Fehlern liegen. <span id="reg-text"></span></div>
     <div class="karte"><b class="t">Erwarteter Auftragswert</b>Gewinnchance × geschätzter Offertwert. Er steht als Information neben jeder Zeile – sortiert wird nach Gewinnchance, weil das Ziel möglichst viele Aufträge ist.</div>
     <div class="karte"><b class="t">Einmal trainiert, dann angewendet</b>Die Modelle werden einmal gerechnet und gespeichert. Der Radar wendet sie im Browser an; hochgeladene Dateien verlassen den Computer nicht.</div>
   </div>
-  <h2 style="margin-top:32px">Grenzen</h2>
-  <ul id="grenzen"></ul>
+  <h2 style="margin-top:40px">Grenzen</h2>
+  <div class="karte"><ul id="grenzen" style="margin:0;padding-left:20px"></ul></div>
 </section>
 </main>
 <footer id="fuss"></footer>
 <div id="tip" role="tooltip"></div>
-<script src="inhalte.js"></script>
-<script src="app.js"></script>
+
+<dialog id="grund-dialog" aria-labelledby="grund-titel">
+  <form method="dialog">
+    <h2 id="grund-titel">Begründung</h2>
+    <p class="klein" id="grund-fall"></p>
+    <label for="grund-text" class="klein">Kurz, damit der Pilot später nachvollziehen kann, wo Erfahrung und Liste auseinandergehen (freiwillig).</label>
+    <textarea id="grund-text" maxlength="200"></textarea>
+    <div class="knoepfe">
+      <button class="knopf sek" value="abbrechen" type="submit">Abbrechen</button>
+      <button class="knopf" value="ok" id="grund-ok" type="submit">Übernehmen</button>
+    </div>
+  </form>
+</dialog>
+<script src="inhalte.js?v=4"></script>
+<script src="app.js?v=4"></script>
 </body>
 </html>

@@ -7,6 +7,10 @@ const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<
 const pct = (x, d = 0) => (x * 100).toFixed(d).replace(".", ",") + " %";
 const zahl = (x, d = 0) => Number(x).toFixed(d).replace(".", ",").replace(/\B(?=(\d{3})+(?!\d))/g, "'");
 const chf = (k) => "CHF " + zahl(Math.round(k) * 1000);
+// Typ-Kennzeichnung: Farbpunkt plus Text, damit die Information nie nur an der Farbe hängt
+const chip = (typ, lang = false) => { const t = I.typen[typ];
+  return `<span class="chip" title="${esc(t.name)}"><i style="background:${t.farbe}" aria-hidden="true"></i>${typ} · ${esc(lang ? t.name : t.kurz)}</span>`; };
+const info = (text, label) => `<span class="info" tabindex="0" role="button" aria-label="${esc(label)}" data-info="${esc(text)}">?</span>`;
 
 let M, GEM, GEM_BFS;            // Modell, Gemeinden
 let quartal = { name: "", quelle: "", rows: [] };
@@ -214,11 +218,11 @@ function zeigeListe() {
   const amRaus = Object.entries(zustand.over).filter(([k, v]) => !k.includes(":") && v === "raus").length;
 
   $("#kpis").innerHTML = `
+    <div class="kpi haupt"><b>≈ ${zahl(erwAuf)} Aufträge</b><span>erwartet laut Modell – statt ≈ ${zahl(zufall)} bei zufälliger Auswahl</span></div>
     <div class="kpi"><b>${drin.length} von ${quartal.rows.length}</b><span>Opportunitäten auf der Liste (Kapazität ${kap})</span></div>
-    <div class="kpi"><b>≈ ${zahl(erwAuf)} Aufträge</b><span>erwartet laut Modell – statt ≈ ${zahl(zufall)} bei zufälliger Auswahl</span></div>
     <div class="kpi"><b>${chf(erwWert)}</b><span>erwarteter Auftragswert (5 Jahre) der Liste</span></div>
     <div class="kpi"><b>${nk}</b><span>Neukunden auf der Liste, davon ${sortiert.filter((r) => r.status === "entd").length} über Entdeckungsplätze</span></div>
-    <div class="kpi gold"><b>+ ${zahl(plus10, 1)} Aufträge</b><span>brächten 10 Offerten mehr (≈ ${chf(plus10w)} erwarteter Wert) – Grundlage für die Frage nach mehr Kapazität <span class="info" data-info="Summe der Gewinnchancen der nächsten 10 Opportunitäten unter dem Schnitt. So sieht man, was eine grössere Kapazität im Offert-Team bringen würde.">?</span></span></div>
+    <div class="kpi gold"><b>+ ${zahl(plus10, 1)} Aufträge</b><span>brächten 10 Offerten mehr (≈ ${chf(plus10w)} erwarteter Wert) – Grundlage für die Frage nach mehr Kapazität ${info("Summe der Gewinnchancen der nächsten 10 Opportunitäten unter dem Schnitt. So sieht man, was eine grössere Kapazität im Offert-Team bringen würde.", "Erklärung Kapazität")}</span></div>
     <div class="kpi"><b>${amRein} / ${amRaus}</b><span>Fälle von Account Managern hinzugefügt / herausgenommen – zeigt, wo Erfahrung und Liste auseinandergehen</span></div>`;
 
   const ansicht = $("#ansicht .an").dataset.v, typ = $("#f-typ").value, q = $("#suche").value.trim().toLowerCase();
@@ -227,36 +231,36 @@ function zeigeListe() {
     (ansicht === "alle" || (ansicht === "liste" ? DRIN.has(r.status) : !DRIN.has(r.status)));
   const oben = drin.filter(passt), unten = sortiert.filter((r) => !DRIN.has(r.status)).filter(passt);
 
-  const kopf = `<thead><tr><th>Priorität</th><th>Gemeinde</th><th>Typ</th><th>Produkt · Quelle</th><th>Gewinnchance</th>
-    <th>Offertwert<br><span style="font-weight:400">CHF 1'000, Bandbreite</span></th><th>Erw. Wert</th><th>Warum?</th><th>Platz / Weg</th><th>Account Manager</th>
-    ${pilot ? "<th>AM hätte gewählt</th><th>Ergebnis</th>" : ""}</tr></thead>`;
+  const kopf = `<thead><tr><th scope="col">Prio.</th><th scope="col">Gemeinde</th><th scope="col">Typ</th><th scope="col">Produkt · Quelle</th><th scope="col" class="n">Gewinnchance</th>
+    <th scope="col" class="n">Offertwert<span class="th-sub">CHF 1'000 · Bandbreite</span></th><th scope="col" class="n">Erw. Wert<span class="th-sub">CHF 1'000</span></th><th scope="col">Warum?</th><th scope="col">Platz / Weg<span class="th-sub">Entscheid Account Manager</span></th>
+    ${pilot ? '<th scope="col">AM hätte gewählt</th><th scope="col">Ergebnis</th>' : ""}</tr></thead>`;
   const zeile = (r) => {
-    const t = I.typen[r.gemeindetyp];
-    const platz = PLATZ[r.status] ? `<span class="marke ${PLATZ[r.status][0]}">${PLATZ[r.status][1]}</span>` : `<span class="klein">${esc(weg(r))}</span>`;
-    const ov = zustand.over[r.id];
-    const knopf = r.stadt ? "" : DRIN.has(r.status)
-      ? `<button class="mini" data-act="raus" data-id="${esc(r.id)}">herausnehmen</button>`
-      : ov === "raus" ? `<button class="mini" data-act="zurueck" data-id="${esc(r.id)}">zurücknehmen</button>`
-      : `<button class="mini" data-act="rein" data-id="${esc(r.id)}">hinzufügen</button>`;
+    const platz = PLATZ[r.status] ? `<span class="marke ${PLATZ[r.status][0]}">${PLATZ[r.status][1]}</span>` : `<span class="weg">${esc(weg(r))}</span>`;
+    const ov = zustand.over[r.id], name = esc(r.gemeindename);
+    const knopf = r.stadt ? '<span class="klein">–</span>' : DRIN.has(r.status)
+      ? `<button class="mini" type="button" data-act="raus" data-id="${esc(r.id)}" aria-label="${name} herausnehmen">herausnehmen</button>`
+      : ov === "raus" ? `<button class="mini" type="button" data-act="zurueck" data-id="${esc(r.id)}" aria-label="${name} zurücknehmen">zurücknehmen</button>`
+      : `<button class="mini" type="button" data-act="rein" data-id="${esc(r.id)}" aria-label="${name} hinzufügen">hinzufügen</button>`;
     const grundAm = zustand.over[r.id + ":grund"] ? `<span class="warnzeile">Grund: ${esc(zustand.over[r.id + ":grund"])}</span>` : "";
     return `<tr class="${DRIN.has(r.status) ? "" : r.status === "raus" ? "raus" : "unter"}">
-      <td class="n">${r.rang}</td>
-      <td><b>${esc(r.gemeindename)}</b> <span class="klein">${esc(r.kanton || "")}</span><br><span class="klein">${zahl(r.einwohner)} Einw. · ${r.bestandskunde === "ja" ? "Bestandskunde" : "Neukunde"}</span></td>
-      <td><span class="chip" style="background:${t.farbe}" title="${esc(t.name)}">${r.gemeindetyp} · ${esc(t.kurz)}</span></td>
-      <td>${esc(r.produktlinie)}<br><span class="klein">${esc(r.quelle)} · ${esc(r.verfahren)}</span></td>
-      <td class="n"><div class="balken"><i style="width:${Math.round(r.chance * 70)}px"></i>${pct(r.chance)}</div></td>
-      <td class="n">${zahl(r.wert)} <span class="klein">(${zahl(r.unten)}–${zahl(r.oben)})</span></td>
-      <td class="n">${zahl(r.erwartet)}</td>
-      <td class="begr">${esc(grund(r))}${hinweise(r).map((h) => `<span class="warnzeile">⚠ ${esc(h)}</span>`).join("")}</td>
-      <td>${platz}</td>
-      <td>${knopf}${grundAm}</td>
-      ${pilot ? `<td><input type="checkbox" data-am="${esc(r.id)}" ${zustand.am[r.id] ? "checked" : ""} aria-label="AM hätte gewählt"></td>
-        <td><select class="mini" data-erg="${esc(r.id)}"><option value="">–</option>${["gewonnen", "verloren", "offen"].map((v) => `<option ${zustand.erg[r.id] === v ? "selected" : ""}>${v}</option>`).join("")}</select></td>` : ""}
+      <td class="n nur-gross">${r.rang}</td>
+      <td class="voll"><span class="nur-klein klein">Priorität ${r.rang} · </span><b class="gem-name">${name}</b> <span class="klein">${esc(r.kanton || "")}</span><span class="meta">${zahl(r.einwohner)} Einw. · ${r.bestandskunde === "ja" ? "Bestandskunde" : "Neukunde"}</span></td>
+      <td data-label="Typ">${chip(r.gemeindetyp)}</td>
+      <td data-label="Produkt · Quelle">${esc(r.produktlinie)}<span class="meta">${esc(r.quelle)} · ${esc(r.verfahren)}</span></td>
+      <td class="n" data-label="Gewinnchance"><div class="balken"><span class="spur" aria-hidden="true"><i style="width:${Math.max(2, Math.round(r.chance * 100))}%"></i></span><b>${pct(r.chance)}</b></div></td>
+      <td class="n" data-label="Offertwert (CHF 1'000)">${zahl(r.wert)} <span class="klein">(${zahl(r.unten)}–${zahl(r.oben)})</span></td>
+      <td class="n" data-label="Erw. Wert (CHF 1'000)">${zahl(r.erwartet)}</td>
+      <td class="begr voll" data-label="Warum?">${esc(grund(r))}${hinweise(r).map((h) => `<span class="warnzeile">⚠ ${esc(h)}</span>`).join("")}</td>
+      <td data-label="Platz / Weg" class="platz">${platz}<div class="am-knopf">${knopf}</div>${grundAm}</td>
+      ${pilot ? `<td data-label="AM hätte gewählt"><label class="check"><input type="checkbox" data-am="${esc(r.id)}" ${zustand.am[r.id] ? "checked" : ""}> <span class="klein">gewählt</span></label></td>
+        <td data-label="Ergebnis"><select class="mini" data-erg="${esc(r.id)}" aria-label="Ergebnis ${name}"><option value="">–</option>${["gewonnen", "verloren", "offen"].map((v) => `<option ${zustand.erg[r.id] === v ? "selected" : ""}>${v}</option>`).join("")}</select></td>` : ""}
     </tr>`;
   };
-  const sp = pilot ? 12 : 10;
-  const schnitt = `<tr class="schnitt"><td colspan="${sp}"><div>Schnitt bei ${kap} Offerten – darunter: jeder Fall bekommt einen Weg, keiner fällt durch</div></td></tr>`;
-  $("#liste").innerHTML = kopf + "<tbody>" + oben.map(zeile).join("") + (ansicht === "alle" ? schnitt : "") + unten.map(zeile).join("") + "</tbody>";
+  const sp = pilot ? 11 : 9;
+  const schnitt = `<tr class="schnitt"><td colspan="${sp}"><div>Schnitt bei ${kap} Offerten – darunter bekommt jeder Fall einen Weg, keiner fällt durch</div></td></tr>`;
+  const leer = !oben.length && !unten.length
+    ? `<tr class="leer"><td colspan="${sp}">Keine Opportunität passt zu diesen Filtern. <button class="mini" type="button" id="filter-zurueck">Filter zurücksetzen</button></td></tr>` : "";
+  $("#liste").innerHTML = kopf + "<tbody>" + oben.map(zeile).join("") + (ansicht === "alle" && oben.length && unten.length ? schnitt : "") + unten.map(zeile).join("") + leer + "</tbody>";
 }
 
 function pruefeMix(rows) {
@@ -314,10 +318,11 @@ function baueGemeinden() {
   $("#typkarten").innerHTML = ["A", "B", "C", "D"].map((t) => {
     const T = I.typen[t], alle = GEM.filter((g) => g.typ === t);
     const romandie = alle.filter((g) => g.sprache === "Französisch").length / alle.length;
-    return `<div class="karte" style="border-top:5px solid ${T.farbe}"><b class="t">${t} · ${esc(T.name)}</b>
-      ${zahl(alle.length)} Gemeinden (${pct(alle.length / GEM.length)}) · ${pct(M.mix.gemeindetyp[t])} unserer Offerten · <b>${pct(M.anteile.gemeindetyp[t].ja)} gewonnen</b><br>
-      <span class="klein">Romandie: ${pct(romandie)} · Produkt zuerst: ${esc(T.produkte[0])} · Schulbau-Signal: ${alle.filter((g) => g.signal).length}</span>
-      <p style="margin:6px 0 0">${esc(T.handlung)}</p></div>`;
+    return `<div class="karte typkarte" style="border-top-color:${T.farbe}"><b class="t">${t} · ${esc(T.name)}</b>
+      <div class="zahlen"><span><strong>${zahl(alle.length)}</strong> Gemeinden (${pct(alle.length / GEM.length)})</span>
+        <span><strong>${pct(M.mix.gemeindetyp[t])}</strong> unserer Offerten</span><span><strong>${pct(M.anteile.gemeindetyp[t].ja)}</strong> gewonnen</span></div>
+      <span class="klein">Romandie ${pct(romandie)} · Produkt zuerst: ${esc(T.produkte[0])} · Schulbau-Signal: ${alle.filter((g) => g.signal).length}</span>
+      <p style="margin:8px 0 0">${esc(T.handlung)}</p></div>`;
   }).join("");
   zeigeGemeinden();
 }
@@ -329,47 +334,50 @@ function zeigeGemeinden() {
     .sort((a, b) => a.typ.localeCompare(b.typ) || (b.signal - a.signal) || a.name.localeCompare(b.name, "de"));
   $("#g-anzahl").textContent = `${zahl(liste.length)} Gemeinden · davon ${zahl(liste.filter((g) => g.signal).length)} mit Schulbau-Signal (zuoberst je Typ)`;
   const st = { kunde: "Kundin", offerte: "Offerte ohne Auftrag", nie: "noch nie offeriert" };
-  $("#gemeinden").innerHTML = `<thead><tr><th>Gemeinde</th><th>Kanton</th><th>Sprache</th><th>Typ</th><th>Status</th><th>Hat</th><th>Nächstes Produkt</th><th>Schulbau-Signal</th><th>Handlung</th></tr></thead><tbody>` +
-    liste.slice(0, gZeigen).map((g) => {
+  $("#gemeinden").innerHTML = `<thead><tr><th scope="col">Gemeinde</th><th scope="col">Kanton</th><th scope="col">Sprache</th><th scope="col">Typ</th><th scope="col">Status</th><th scope="col">Hat</th><th scope="col">Nächstes Produkt</th><th scope="col">Schulbau-Signal</th><th scope="col">Handlung</th></tr></thead><tbody>` +
+    (liste.length ? liste.slice(0, gZeigen).map((g) => {
       const T = I.typen[g.typ];
-      return `<tr><td><b>${esc(g.name)}</b>${g.einwohner ? `<br><span class="klein">${zahl(g.einwohner)} Einw.</span>` : ""}</td><td>${esc(g.kanton)}</td><td>${esc(g.sprache)}</td>
-      <td><span class="chip" style="background:${T.farbe}">${g.typ} · ${esc(T.kurz)}</span></td><td>${st[gStatus(g)]}</td>
-      <td>${g.produkte.map(esc).join(", ") || "–"}</td><td><b>${esc(naechstes(g))}</b></td>
-      <td>${g.signal ? `<span class="marke entd">ja</span><br><span class="klein">${zahl(g.neubau, 1)} Neubauten/1'000 · ${zahl(g.jung, 1)} % Junge</span>` : "–"}</td>
-      <td class="begr">${esc(T.handlung)}</td></tr>`;
-    }).join("") + "</tbody>";
+      return `<tr><td class="voll"><b class="gem-name">${esc(g.name)}</b>${g.einwohner ? `<span class="meta">${zahl(g.einwohner)} Einw.</span>` : ""}</td>
+      <td data-label="Kanton">${esc(g.kanton)}</td><td data-label="Sprache">${esc(g.sprache)}</td>
+      <td data-label="Typ">${chip(g.typ)}</td><td data-label="Status">${st[gStatus(g)]}</td>
+      <td data-label="Hat">${g.produkte.map(esc).join(", ") || "–"}</td><td data-label="Nächstes Produkt"><b>${esc(naechstes(g))}</b></td>
+      <td data-label="Schulbau-Signal">${g.signal ? `<span class="marke entd">ja</span><span class="meta">${zahl(g.neubau, 1)} Neubauten/1'000 · ${zahl(g.jung, 1)} % Junge</span>` : "–"}</td>
+      <td class="begr voll" data-label="Handlung">${esc(T.handlung)}</td></tr>`;
+    }).join("") : `<tr class="leer"><td colspan="9">Keine Gemeinde passt zu diesen Filtern. <button class="mini" type="button" id="g-zurueck">Filter zurücksetzen</button></td></tr>`) + "</tbody>";
   $("#g-mehr").style.display = liste.length > gZeigen ? "" : "none";
 }
 
 // ------------------------------------------------------------ Rückblick & Pilot
 function baueRueckblick() {
   const k = M.kennzahlen, lk = k.lernkosten, nu = k.nutzen;
-  const breite = 300, max = Math.max(k.auftraege_liste, 40);
-  const balken = (y, wert, farbe, text) => `<text x="0" y="${y + 18}" font-size="17">${text}</text>
-    <rect x="190" y="${y}" width="${(wert / max) * breite}" height="24" rx="4" fill="${farbe}"></rect>
-    <text x="${198 + (wert / max) * breite}" y="${y + 18}" font-size="17" font-weight="700">${zahl(wert)}</text>`;
-  const pk = k.gewinnkurve.map((v, i) => `${40 + i * 18},${190 - v * 170}`).join(" ");
+  const max = Math.max(k.auftraege_liste, 40);
+  const bahn = (wert, farbe) => `<span class="bahn"><i style="width:${(wert / max) * 75}%;background:${farbe}"></i><b>${zahl(wert)}</b></span>`;
+  // Gewinnkurve: Text in SVG-Einheiten gross genug, damit er auch bei 320 px Breite lesbar bleibt
+  const pk = k.gewinnkurve.map((v, i) => `${50 + i * 14},${200 - v * 170}`).join(" ");
   $("#rueckblick").innerHTML = `
     <div class="zwei">
       <div class="karte"><b class="t">80 Offerten pro Quartal bringen</b>
-        <svg viewBox="0 0 560 80" width="100%" role="img" aria-label="Aufträge mit Liste und zufällig">
-          ${balken(4, k.auftraege_liste, "var(--blau)", "mit der Liste")}${balken(44, k.auftraege_zufall, "#8a96a3", "bei zufälliger Auswahl")}</svg>
+        <div class="vergleich" role="img" aria-label="Rund ${zahl(k.auftraege_liste)} Aufträge mit der Liste, ${zahl(k.auftraege_zufall)} bei zufälliger Auswahl">
+          <span class="lbl">mit der Liste</span>${bahn(k.auftraege_liste, "var(--blau)")}
+          <span class="lbl">bei zufälliger Auswahl</span>${bahn(k.auftraege_zufall, "#8a96a3")}</div>
         <p>Rund <b>${zahl(k.auftraege_liste)} statt ${zahl(k.auftraege_zufall)} Aufträge</b> pro Quartal – je nach Aufteilung der Daten ${zahl(k.spanne[0])} bis ${zahl(k.spanne[1])}. Darum nennen wir eine Spanne.</p>
         <p class="klein">${k.treffer_top225} Treffer unter den obersten 225 von ${k.test_n} Prüf-Offerten, umgerechnet × 80/225.</p></div>
-      <div class="karte"><b class="t">Gewinnkurve</b>
-        <svg viewBox="0 0 440 220" width="100%" role="img" aria-label="Anteil gefundener Aufträge">
-          <line x1="40" y1="190" x2="400" y2="190" stroke="var(--linie)"/><line x1="40" y1="20" x2="40" y2="190" stroke="var(--linie)"/>
-          <polyline points="40,190 400,20" fill="none" stroke="#8a96a3" stroke-width="2" stroke-dasharray="4 4"/>
-          <polyline points="${pk}" fill="none" stroke="var(--blau)" stroke-width="2.5"/>
-          <line x1="130" y1="20" x2="130" y2="190" stroke="var(--gold)" stroke-width="1.5"/>
-          <text x="136" y="180" font-size="12" fill="var(--gold)">25 % offeriert → ${pct(k.gewinnkurve[5])} der Aufträge</text>
-          <text x="40" y="210" font-size="11">Anteil offeriert (nach Liste) →</text><text x="44" y="14" font-size="11">Anteil aller Aufträge gefunden</text>
-        </svg><p class="klein">Grau gestrichelt: zufällige Auswahl.</p></div>
+      <div class="karte kurve"><b class="t">Gewinnkurve</b>
+        <svg viewBox="0 0 360 240" role="img" aria-label="Wer die obersten 25 Prozent der Liste offeriert, findet ${pct(k.gewinnkurve[5])} aller Aufträge">
+          <line x1="50" y1="200" x2="330" y2="200" stroke="var(--linie-stark)"/><line x1="50" y1="30" x2="50" y2="200" stroke="var(--linie-stark)"/>
+          <polyline points="50,200 330,30" fill="none" stroke="#8a96a3" stroke-width="2" stroke-dasharray="5 5"/>
+          <polyline points="${pk}" fill="none" stroke="var(--blau)" stroke-width="3" stroke-linejoin="round"/>
+          <line x1="120" y1="30" x2="120" y2="200" stroke="var(--gold)" stroke-width="1.5"/>
+          <circle cx="120" cy="${200 - k.gewinnkurve[5] * 170}" r="5" fill="var(--gold)"/>
+          <text x="128" y="${206 - k.gewinnkurve[5] * 170 + 22}" style="fill:var(--gold);font-weight:700">25 % → ${pct(k.gewinnkurve[5])}</text>
+          <text x="50" y="226">0 %</text><text x="330" y="226" text-anchor="end">100 % offeriert</text>
+          <text x="50" y="20">Anteil aller Aufträge gefunden</text>
+        </svg><p class="klein">Blau: nach Liste offeriert. Grau gestrichelt: zufällige Auswahl.</p></div>
     </div>
     <h3>Wohin sich die Arbeit verschiebt</h3>
-    <div class="tabelle-wrap"><table class="t"><thead><tr><th>Gemeindetyp</th><th>Prüf-Offerten</th><th>davon gewonnen</th><th>auf der Liste</th><th>Anteil dieses Typs auf der Liste</th></tr></thead><tbody>
-      ${k.zusammensetzung.map((z) => `<tr><td><span class="chip" style="background:${I.typen[z.typ].farbe}">${z.typ}</span> ${esc(I.typen[z.typ].name)}</td>
-        <td class="n">${z.test}</td><td class="n">${pct(z.ja_anteil, 1)}</td><td class="n">${z.auf_liste}</td><td class="n"><b>${pct(z.anteil_auf_liste, 1)}</b></td></tr>`).join("")}
+    <div class="tabelle-wrap"><table class="t"><thead><tr><th scope="col">Gemeindetyp</th><th scope="col" class="n">Prüf-Offerten</th><th scope="col" class="n">davon gewonnen</th><th scope="col" class="n">auf der Liste</th><th scope="col" class="n">Anteil des Typs auf der Liste</th></tr></thead><tbody>
+      ${k.zusammensetzung.map((z) => `<tr><td class="voll">${chip(z.typ, true)}</td>
+        <td class="n" data-label="Prüf-Offerten">${z.test}</td><td class="n" data-label="davon gewonnen">${pct(z.ja_anteil, 1)}</td><td class="n" data-label="auf der Liste">${z.auf_liste}</td><td class="n" data-label="Anteil auf der Liste"><b>${pct(z.anteil_auf_liste, 1)}</b></td></tr>`).join("")}
     </tbody></table></div>
     <div class="merke"><b>Entdeckungsplätze: was sie kosten, was sie bringen.</b> Mit ${lk.liste_plaetze} Listenplätzen und ${lk.entdeckung_plaetze} Plätzen für Neukunden
       werden es im Schnitt <b>${zahl(lk.auftraege_mit_entdeckung, 1)} statt ${zahl(lk.auftraege_nur_liste, 1)} Aufträge</b> pro Quartal
@@ -378,11 +386,11 @@ function baueRueckblick() {
     <h3>Was das in Franken heisst</h3>
     <div class="zwei">
       <div class="karte"><b class="t">Mehrumsatz gegenüber zufälliger Auswahl</b>
-        <div style="font-size:26px;font-weight:700;color:var(--blau)">CHF ${zahl(nu.pro_jahr_chf1000[0] / 1000, 1)} bis ${zahl(nu.pro_jahr_chf1000[1] / 1000, 1)} Mio. pro Jahr</div>
+        <div class="grosszahl">CHF ${zahl(nu.pro_jahr_chf1000[0] / 1000, 1)} bis ${zahl(nu.pro_jahr_chf1000[1] / 1000, 1)} Mio. pro Jahr</div>
         <p>Die Liste bringt ${zahl(nu.plus_auftraege_q[0])} bis ${zahl(nu.plus_auftraege_q[1])} Aufträge mehr pro Quartal. Diese zusätzlichen Aufträge sind <b>kleiner als der Durchschnitt</b>
         (rund ${chf(nu.wert_zusatzauftrag)} statt ${chf(nu.wert_durchschnitt)} über 5 Jahre): Hohe Gewinnchance und grosser Auftrag gehen auseinander.
         Weil die Verträge 5 Jahre laufen, verteilen wir den Wert auf 5 Jahre – das ist der Mehrumsatz pro Jahr und Offert-Jahrgang (Umsatz 2025: CHF 64 Mio.).</p></div>
-      <div class="karte" style="border-left:5px solid var(--gold)"><b class="t">Ehrlich bleiben</b>
+      <div class="karte" style="border-left:4px solid var(--gold)"><b class="t">Ehrlich bleiben</b>
         <ul style="margin:4px 0;padding-left:20px">
           <li>Verglichen wird mit <b>Zufall</b>. Gegenüber der heutigen Auswahl nach Erfahrung ist der Gewinn vermutlich kleiner – genau das misst der Pilot.</li>
           <li>Bestandskunden gewinnen auch ohne Liste oft. Diesen Vorsprung schreiben wir nicht dem Modell gut.</li>
@@ -418,7 +426,7 @@ function zeigePilot() {
         <table class="t"><thead><tr><th>Offeriert, weil …</th><th>Fälle</th><th>gewonnen</th><th>verloren</th><th>Gewinnquote</th></tr></thead><tbody>
         ${Object.entries(gruppen).map(([n, rs]) => {
           const g = rs.filter((r) => zustand.erg[r.id] === "gewonnen").length, v = rs.filter((r) => zustand.erg[r.id] === "verloren").length;
-          return `<tr><td>${n}</td><td class="n">${rs.length}</td><td class="n">${g}</td><td class="n">${v}</td><td class="n">${g + v ? pct(g / (g + v)) : "–"}</td></tr>`;
+          return `<tr><td class="voll"><b>${n}</b></td><td class="n" data-label="Fälle">${rs.length}</td><td class="n" data-label="gewonnen">${g}</td><td class="n" data-label="verloren">${v}</td><td class="n" data-label="Gewinnquote">${g + v ? pct(g / (g + v)) : "–"}</td></tr>`;
         }).join("")}</tbody></table>
         <p class="klein">Entscheidend ist «nur Liste» gegen «nur AM»: Dort unterscheiden sich Modell und Erfahrung.
         ${ohneOfferte ? `<br><b>${ohneOfferte} Fälle hätte der AM gewählt, sie werden aber nicht offeriert</b> – ohne Pilotmodus fehlt für sie das Ergebnis.` : ""}</p></div>
@@ -429,37 +437,61 @@ function zeigePilot() {
 
 // ------------------------------------------------------------ Herleitung
 function baueHerleitung() {
-  $("#herleitung").innerHTML = `<thead><tr><th>Analyseergebnis</th><th>Element im Marktradar</th><th>Was wir ohne die Daten falsch gebaut hätten</th></tr></thead><tbody>` +
-    I.herleitung.map((z) => `<tr>${z.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`).join("") + "</tbody>";
+  const sp = ["Analyseergebnis", "Element im Marktradar", "Was wir ohne die Daten falsch gebaut hätten"];
+  $("#herleitung").innerHTML = `<thead><tr>${sp.map((s) => `<th scope="col">${s}</th>`).join("")}</tr></thead><tbody>` +
+    I.herleitung.map((z) => `<tr>${z.map((c, i) => `<td class="voll" data-label="${sp[i]}">${i === 1 ? `<b>${esc(c)}</b>` : esc(c)}</td>`).join("")}</tr>`).join("") + "</tbody>";
   $("#grenzen").innerHTML = I.grenzen.map((g) => `<li>${esc(g)}</li>`).join("");
   const g = M.regression;
   $("#reg-text").textContent = `Im Schnitt liegt die Schätzung ${zahl(g.mae)}'000 Franken daneben; 8 von 10 Fehlern liegen zwischen ${zahl(g.band_unten)}'000 und +${zahl(g.band_oben)}'000.`;
 }
 
 // ------------------------------------------------------------ Bedienung
-$("#tabs").addEventListener("click", (e) => {
-  const b = e.target.closest("button[data-tab]"); if (!b) return;
-  $$("#tabs button").forEach((x) => x.setAttribute("aria-selected", x === b));
+function waehleTab(b, fokus) {
+  $$("#tabs button").forEach((x) => { const an = x === b; x.setAttribute("aria-selected", an); x.tabIndex = an ? 0 : -1; });
   $$(".tab").forEach((t) => t.classList.toggle("aktiv", t.id === "tab-" + b.dataset.tab));
+  if (fokus) b.focus();
+  b.scrollIntoView({ block: "nearest", inline: "nearest" });
   if (b.dataset.tab === "pilot" && M) zeigePilot();
   try { localStorage.setItem("radar:tab", b.dataset.tab); } catch (err) { /* egal */ }
+}
+$("#tabs").addEventListener("click", (e) => { const b = e.target.closest("button[data-tab]"); if (b) waehleTab(b); });
+$("#tabs").addEventListener("keydown", (e) => {   // Pfeiltasten wie bei Registerkarten üblich
+  const alle = $$("#tabs button"), i = alle.indexOf(document.activeElement);
+  const ziel = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: alle.length - 1 }[e.key];
+  if (ziel === undefined || i < 0) return;
+  e.preventDefault(); waehleTab(alle[(ziel + alle.length) % alle.length], true);
 });
 $("#ansicht").addEventListener("click", (e) => {
   const b = e.target.closest("button"); if (!b) return;
-  $$("#ansicht button").forEach((x) => x.classList.toggle("an", x === b)); zeigeListe();
+  $$("#ansicht button").forEach((x) => { x.classList.toggle("an", x === b); x.setAttribute("aria-pressed", x === b); }); zeigeListe();
 });
 ["#kap", "#entd", "#f-typ", "#suche", "#pilot-spalten", "#pilotmodus"].forEach((s) => $(s).addEventListener("input", () => quartal.rows.length && zeigeListe()));
-$("#liste").addEventListener("click", (e) => {
+
+// Begründung für AM-Entscheide: eigener Dialog statt Browser-Prompt
+function frageGrund(text) {
+  const d = $("#grund-dialog");
+  if (typeof d.showModal !== "function") {   // sehr alte Browser
+    const g = prompt(text); return Promise.resolve(g === null ? null : g);
+  }
+  $("#grund-titel").textContent = text; $("#grund-text").value = "";
+  d.showModal(); $("#grund-text").focus();
+  return new Promise((ok) => d.addEventListener("close", () => ok(d.returnValue === "ok" ? $("#grund-text").value : null), { once: true }));
+}
+$("#liste").addEventListener("click", async (e) => {
+  if (e.target.id === "filter-zurueck") { $("#suche").value = ""; $("#f-typ").value = ""; $('#ansicht button[data-v="alle"]').click(); return; }
   const b = e.target.closest("button[data-act]"); if (!b) return;
   const id = b.dataset.id, act = b.dataset.act;
   if (act === "zurueck") { delete zustand.over[id]; delete zustand.over[id + ":grund"]; }
   else {
-    const grund = prompt(act === "raus" ? "Warum nehmt ihr diesen Fall heraus? (kurz)" : "Warum soll dieser Fall auf die Liste? (kurz)");
-    if (grund === null) return;
+    const r = quartal.rows.find((x) => x.id === id);
+    $("#grund-fall").textContent = r ? `${r.gemeindename} · ${r.produktlinie} · Gewinnchance ${pct(r.chance)}` : "";
+    const grund = await frageGrund(act === "raus" ? "Warum nehmt ihr diesen Fall heraus?" : "Warum soll dieser Fall auf die Liste?");
+    if (grund === null) { b.focus(); return; }
     zustand.over[id] = act; if (grund.trim()) zustand.over[id + ":grund"] = grund.trim();
   }
   speichere(); zeigeListe();
 });
+$("#hochladen").addEventListener("click", () => $("#datei").click());
 $("#liste").addEventListener("change", (e) => {
   const t = e.target;
   if (t.dataset.am) { if (t.checked) zustand.am[t.dataset.am] = 1; else delete zustand.am[t.dataset.am]; }
@@ -486,19 +518,29 @@ $("#g-mehr").addEventListener("click", () => { gZeigen += 200; zeigeGemeinden();
 const gFilter = (typ, status) => { $("#g-typ").value = typ; $("#g-status").value = status; $("#g-sprache").value = ""; $("#g-kanton").value = ""; $("#g-suche").value = ""; gZeigen = 100; zeigeGemeinden(); };
 $("#kampagne").addEventListener("click", () => gFilter("C", "nie"));
 $("#crosssell").addEventListener("click", () => gFilter("", "kunde"));
-// Info-Hinweise: mit der Maus und per Tippen (Handy)
+$("#gemeinden").addEventListener("click", (e) => { if (e.target.id === "g-zurueck") gFilter("", ""); });
+// Info-Hinweise: Maus, Tippen (Handy) und Tastatur
 function zeigeTip(i) {
   const tip = $("#tip");
   if (!i) { tip.style.display = "none"; return; }
   tip.textContent = i.dataset.info; tip.style.display = "block";
-  const r = i.getBoundingClientRect();
-  tip.style.left = Math.max(8, Math.min(r.left, innerWidth - 330)) + "px"; tip.style.top = r.bottom + 6 + "px";
+  const r = i.getBoundingClientRect(), b = Math.min(300, innerWidth - 16);
+  tip.style.maxWidth = b + "px";
+  tip.style.left = Math.max(8, Math.min(r.left - 12, innerWidth - b - 8)) + "px";
+  const unten = r.bottom + 8, hoehe = tip.offsetHeight;
+  tip.style.top = (unten + hoehe > innerHeight - 8 ? Math.max(8, r.top - hoehe - 8) : unten) + "px";
 }
-document.addEventListener("mouseover", (e) => zeigeTip(e.target.closest(".info")));
+document.addEventListener("mouseover", (e) => { if (!document.activeElement?.classList?.contains("info")) zeigeTip(e.target.closest(".info")); });
 document.addEventListener("click", (e) => {
   const i = e.target.closest(".info");
   if (i) e.preventDefault();   // sonst löst das umgebende <label> einen zweiten Klick aus
   zeigeTip(i);
 });
-try { const t = localStorage.getItem("radar:tab"); if (t) $(`#tabs button[data-tab="${t}"]`)?.click(); } catch (e) { /* egal */ }
+document.addEventListener("focusin", (e) => zeigeTip(e.target.closest?.(".info")));
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") zeigeTip(null);
+  if ((e.key === "Enter" || e.key === " ") && e.target.classList?.contains("info")) { e.preventDefault(); zeigeTip(e.target); }
+});
+addEventListener("scroll", () => zeigeTip(null), { passive: true });
+try { const t = localStorage.getItem("radar:tab"); if (t) { const b = $(`#tabs button[data-tab="${t}"]`); if (b) waehleTab(b); } } catch (e) { /* egal */ }
 start();
