@@ -322,7 +322,7 @@ body.gesperrt .regler,body.gesperrt #tab-liste>.filter{display:none}
 .verlauf b{color:var(--text)}
 @media (max-width:760px){.rolle{width:100%;padding-bottom:6px;order:3}.rolle select{flex:1}}
 @media print{body.druck-cockpit .kopf,body.druck-cockpit .hinweis-band,body.druck-cockpit #cockpit .filter,body.druck-cockpit #cockpit select,body.druck-cockpit .knoepfe{display:none!important}
-  body.druck-cockpit .tab{display:none!important}body.druck-cockpit #tab-pilotjahr{display:block!important}}
+  body.druck-cockpit .tab{display:none!important}body.druck-cockpit #tab-start{display:block!important}}
 .regel{margin:12px 0 4px;padding:10px 12px;border-left:4px solid #8a96a3;background:var(--grau-h);border-radius:0 var(--r-s) var(--r-s) 0;font-size:13.5px}
 #cockpit>.phase-zeile{margin-bottom:4px}
 .kpi.haupt .ampel{align-self:flex-start;margin-bottom:4px;color:#fff}
@@ -427,3 +427,41 @@ dialog.seitenblatt textarea{width:100%;margin-top:6px}
   .fakten{grid-template-columns:1fr}.fakten dt{margin-top:6px}
   table.kompakt td.nur-gross{display:none!important}
 }
+
+/* Demo-Zeitpunkte, Daten-Bereich, Jahressicht auf der Übersicht */
+.demo-leiste{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;margin:14px 0 4px;padding:12px 14px;background:var(--gold-h);border:1px solid var(--gold-rand);border-radius:var(--r-m)}
+.demo-titel{font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--gold)}
+.demo-knoepfe{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+.demo-knopf{display:flex;flex-direction:column;align-items:flex-start;gap:1px;min-height:44px;padding:6px 12px;border-radius:var(--r-s);border:1px solid var(--gold-rand);background:var(--flaeche);cursor:pointer;text-align:left;color:var(--text)}
+.demo-knopf b{font-size:13.5px}.demo-knopf span{font-size:11.5px;color:var(--grau)}
+.demo-knopf:hover{border-color:var(--gold)}
+.demo-knopf.an{background:var(--gold);border-color:var(--gold);color:#fff}.demo-knopf.an span{color:rgba(255,255,255,.9)}
+.demo-knopf.laedt{opacity:.6;cursor:progress}
+.demo-hinweis{flex-basis:100%;margin:0}
+details.daten{margin-top:28px;background:var(--flaeche);border:1px solid var(--linie);border-radius:var(--r-m)}
+details.daten summary{cursor:pointer;padding:14px 16px;font-weight:600;color:var(--blau);list-style-position:inside}
+details.daten[open] summary{border-bottom:1px solid var(--linie)}
+.daten-inhalt{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;padding:16px}
+.daten-inhalt p{margin:4px 0 10px}
+.cockpit-kopf{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:28px 0 10px}
+.cockpit-kopf h3{margin:0}
+#cockpit:empty{display:none}
+@media (max-width:760px){.daten-inhalt{grid-template-columns:1fr}.demo-knoepfe{flex-basis:100%}.demo-knopf{flex:1 1 45%}}
+@media print{.demo-leiste,details.daten{display:none}
+  body.druck-cockpit #tab-start{display:block!important}body.druck-cockpit .start-kopf label,body.druck-cockpit #start .aufgabe-rechts button{display:none}}
+.regler input[type=checkbox]{width:18px;height:18px;min-height:0;padding:0;text-align:left}
+
+/* Menü «Demo-Stand» im Kopf */
+.demo-menue{position:relative}
+.demo-auswahl::after{content:"▾";margin-left:6px;font-size:11px}
+.demo-auswahl.an{background:#c9962b;border-color:#c9962b;color:#1a2430}
+.demo-pop{position:absolute;right:0;top:calc(100% + 8px);width:340px;background:var(--flaeche);color:var(--text);border:1px solid var(--linie);border-radius:var(--r-m);box-shadow:var(--schatten-hoch);padding:14px;z-index:40}
+.demo-pop .demo-titel{margin:0;font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--gold)}
+.demo-pop>.klein{margin:4px 0 10px}
+.demo-pop .demo-knoepfe{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.demo-pop .demo-knopf{width:100%;flex-direction:row;justify-content:space-between;align-items:center;gap:10px}
+.demo-pop .demo-knopf span{text-align:right}
+.demo-pop .knopf{width:100%}
+.demo-pop .demo-hinweis{margin:10px 0 0}
+@media (max-width:760px){.demo-pop{position:fixed;left:12px;right:12px;top:auto;width:auto;max-height:80vh;overflow:auto}}
+@media print{.demo-menue{display:none}}

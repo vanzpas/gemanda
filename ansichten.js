@@ -218,8 +218,12 @@ function jahrKennzahlen(Q) {
   return { alle, z, entsch, erw, L: quoteVon("liste"), A: quoteVon("am"), ueber: alle.filter((r) => fristInfo(r, r.z).ueber),
     ampel: verh === null ? null : verh >= 0.9 ? ["#1a8a5f", "im Plan"] : verh >= 0.75 ? ["#c9962b", "knapp unter Plan"] : ["#b3261e", "unter Plan"] };
 }
-function fazitSatz(k) {
+function fazitSatz(k, Q = []) {
   if (!k.alle.length) return "Noch keine Offerte geplant. Sobald ein Quartal erfasst ist, erscheint hier der Stand.";
+  if (Q.length && Q.every((q) => q.z.phase === "vorauswahl")) {
+    const q = Q[Q.length - 1];
+    return `Das Pilotjahr startet: Die Account Manager geben ihre Vorauswahl für ${q.name} ab (${Object.keys(q.z.abgabe || {}).length} von ${I.regionen.length}). Danach gibt die Vertriebsleitung die Liste frei.`;
+  }
   if (!k.entsch.length) return `Noch keine Offerte entschieden. ${k.alle.length} Offerten sind geplant, ${k.z.bearbeitung + k.z.offeriert} davon in Arbeit.`;
   return `${k.z.gewonnen} Aufträge gewonnen – erwartet waren rund ${zahl(k.erw)}. Der Pilot liegt ${k.ampel[1]}.`
     + (k.L && k.A ? ` Die Liste gewinnt ${pct(k.L.q)} ihrer Fälle, die Auswahl nach Erfahrung ${pct(k.A.q)}.` : "")
@@ -240,7 +244,7 @@ function zeigeStart() {
   const kopf = `<div class="start-kopf"><div><p class="klein">Übersicht für</p><h2>${esc(rolleText())}</h2></div>
     <label class="suche-gross"><span class="sr-only">Gemeinde suchen</span><input type="search" id="start-suche" class="feld" list="gemeinde-liste" placeholder="Gemeinde suchen – Profil öffnen"></label></div>
     ${lies("radar:stand") ? `<p class="klein">Demo-Stand ${esc(lies("radar:stand"))} – simulierter Ablauf.</p>` : ""}
-    <div class="fazit" style="border-left-color:${k.ampel ? k.ampel[0] : "#8a96a3"}">${k.ampel ? `<span class="ampel-punkt" style="background:${k.ampel[0]}"></span>` : ""}<p>${esc(fazitSatz(k))}</p></div>`;
+    <div class="fazit" style="border-left-color:${k.ampel ? k.ampel[0] : "#8a96a3"}">${k.ampel ? `<span class="ampel-punkt" style="background:${k.ampel[0]}"></span>` : ""}<p>${esc(fazitSatz(k, Q))}</p></div>`;
   let inhalt = "";
 
   if (t === "gl" || t === "vl") {
@@ -263,7 +267,7 @@ function zeigeStart() {
         : `<div class="karte"><b class="t">Entscheidungsregel</b><p style="margin:0">${esc(I.entscheidRegel.text)}</p></div>`}
     </div>
     ${t === "vl" && k.ueber.length ? `<h3>Überfällige Offerten</h3><ul class="aufgaben">${k.ueber.sort(sortFrist).slice(0, 6).map((r) => aufgabe(r, r.q, r.z)).join("")}</ul>` : ""}
-    <p><button class="knopf" type="button" data-zum="pilotjahr">Zum ausführlichen Cockpit</button></p>`;
+`;
   } else if (t === "ot") {
     const vorrat = zaehle(offen);
     const dringend = offen.filter((r) => fristInfo(r, r.z).ueber || fristInfo(r, r.z).bald).sort(sortFrist);
@@ -287,7 +291,42 @@ function zeigeStart() {
     ${entschieden.length ? `<ul class="aufgaben">${entschieden.map((r) => aufgabe(r, r.q, r.z)).join("")}</ul>` : '<p class="klein">Noch nichts entschieden.</p>'}`;
   }
   $("#start").innerHTML = kopf + inhalt;
+  zeigeCockpit();
 }
+
+// ------------------------------------------------------------ Demo-Zeitpunkte und Zurücksetzen
+// Menü «Demo-Stand» oben im Kopf – gilt für Übersicht und Offertliste
+function zeigeDemoLeiste() {
+  const aktiv = lies("radar:demo"), eintrag = DEMO_STAENDE.find(([d]) => d === aktiv);
+  $("#demo-knopf").innerHTML = eintrag ? `Demo: <b>${esc(eintrag[1])}</b>` : "Demo-Stand";
+  $("#demo-knopf").classList.toggle("an", !!eintrag);
+  $("#demo-pop").innerHTML = `<p class="demo-titel">Demo-Stand für den Pitch</p>
+    <p class="klein">Zeigt das Pilotjahr zu einem Zeitpunkt – in der Übersicht und in der Offertliste.</p>
+    <div class="demo-knoepfe" role="group" aria-label="Demo-Zeitpunkt">${DEMO_STAENDE.map(([d, n, t]) =>
+      `<button type="button" class="demo-knopf${d === aktiv ? " an" : ""}" data-demo="${d}" aria-pressed="${d === aktiv}"><b>${n}</b><span>${t}</span></button>`).join("")}</div>
+    <button type="button" class="knopf sek klein-k" id="zuruecksetzen">Zurücksetzen: leeres Q1</button>
+    <p class="klein demo-hinweis">Simuliert: Ausgang aus echten bisherigen Offerten, Bearbeitungsstand und Vorauswahl der Account Manager erfunden.</p>`;
+}
+function demoMenue(offen) {
+  $("#demo-pop").hidden = !offen;
+  $("#demo-knopf").setAttribute("aria-expanded", offen);
+  if (offen) ($("#demo-pop .demo-knopf.an") || $("#demo-pop .demo-knopf")).focus();
+}
+$("#demo-knopf").addEventListener("click", () => demoMenue($("#demo-pop").hidden));
+document.addEventListener("click", (e) => { if (!$("#demo-pop").hidden && !e.target.closest(".demo-menue")) demoMenue(false); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#demo-pop").hidden) { demoMenue(false); $("#demo-knopf").focus(); } });
+$("#demo-pop").addEventListener("click", async (e) => {
+  const b = e.target.closest("[data-demo]");
+  if (b) {
+    const eigeneAenderungen = !lies("radar:demo") && register().some((q) => (zustandVon(q.name).log || []).length);
+    if (eigeneAenderungen && !confirm("Den Demo-Stand laden? Eure eigenen Änderungen in diesem Browser werden ersetzt.")) return;
+    b.classList.add("laedt");
+    await ladeDemoJahr(b.dataset.demo);
+    zeigeDemoLeiste(); zeigeStart(); demoMenue(false);
+    return;
+  }
+  if (e.target.id === "zuruecksetzen") { demoMenue(false); if (await setzeZurueck()) { zeigeDemoLeiste(); zeigeStart(); } }
+});
 $("#start").addEventListener("change", (e) => {
   if (e.target.id !== "start-suche") return;
   const m = /^(.*) \(([A-Z]{2})\)$/.exec(e.target.value.trim());
@@ -349,4 +388,4 @@ $("#liste").addEventListener("am-entscheid", (e) => {
 
 // Gespeicherte Darstellung wiederherstellen und starten
 { const m = lies("radar:modus"); const b = m && $(`#modus button[data-v="${m}"]`); if (b) { $$("#modus button").forEach((x) => { x.classList.toggle("an", x === b); x.setAttribute("aria-pressed", x === b); }); } }
-start().then(() => { zeigeStart(); zeigeHilfe(false); });
+start().then(() => { zeigeStart(); zeigeDemoLeiste(); zeigeHilfe(false); });

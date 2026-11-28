@@ -85,7 +85,7 @@ const WERTE = {
 
 // ------------------------------------------------------------ Laden
 async function start() {
-  $("#datenhinweis").textContent = I.datenhinweis;
+  // Datenhinweis nur noch klein in der Fusszeile und im Gemeinde-Profil (Vorgabe Projektfile)
   $("#tool-satz").textContent = I.gruppe.toolSatz;
   $("#tool-satz-2").textContent = I.gruppe.toolSatz;
   $("#fuss").textContent = "GovTech-Marktradar · MVP · Leistungsnachweis 2, CAS AI in Product Management HS 26 · " + I.datenhinweis;
@@ -652,21 +652,10 @@ function zeigeCockpit() {
   const laufend = alle.filter((r) => !fz || zustaendig(r) === (fz === "meine" ? rolle.am : fz)).filter((r) => fst === "offen" ? (r.st === "bearbeitung" || r.st === "offeriert") : fst === "alle" ? true : (r.st || "geplant") === fst)
     .sort((a, b) => sortQ(a.q) - sortQ(b.q) || b.chance - a.chance);
 
+  if (rolle.typ === "am" || !Q.length) { $("#cockpit").innerHTML = ""; return; }
   $("#cockpit").innerHTML = `
-    ${stand ? `<div class="meldung warn"><b>Demo-Stand ${esc(stand)}.</b> Ausgang aus echten bisherigen Offerten, Bearbeitungsstand und Vorauswahl der Account Manager simuliert (AM wählen wie heute: Bestandskunden und grosse Gemeinden zuerst).</div>` : ""}
-    ${Q.length ? "" : `<div class="lade" style="animation:none">Noch kein Quartal erfasst.</div>`}
-    <div class="phase-zeile"><span class="klein">Ansicht als <b>${esc(rolleText())}</b>${rolle.typ === "gl" ? " – nur lesen" : ""}</span>
+    <div class="cockpit-kopf"><h3>Pilotjahr im Detail</h3>
       <button class="knopf sek klein-k" type="button" id="bericht">Bericht für die Geschäftsleitung drucken</button></div>
-    <div class="kpis">
-      <div class="kpi haupt">${ampel ? `<span class="ampel"><i style="background:${ampel[0]}"></i>${ampel[1]}</span>` : ""}<b>${z.gewonnen} Aufträge gewonnen</b><span>von ${entsch.length} entschiedenen Offerten (Gewinnquote ${quote(z.gewonnen, z.verloren)}) – erwartet laut Modell ≈ ${zahl(erwEntsch)}, bei zufälliger Auswahl ≈ ${zahl(zufall)}</span></div>
-      <div class="kpi"><b>${alle.length} von ${plan}</b><span>Offerten im Pilot geplant (${Q.length} ${Q.length === 1 ? "Quartal" : "Quartale"})</span></div>
-      <div class="kpi${ueber ? " rot" : ""}"><b>${z.bearbeitung + z.offeriert}</b><span>in Arbeit: ${z.bearbeitung} in Bearbeitung, ${z.offeriert} offeriert mit offenem Entscheid${ueber ? ` · <b>${ueber} überfällig</b>` : ""}</span></div>
-      <div class="kpi"><b>≈ ${zahl(prognose)} Aufträge</b><span>Prognose fürs ganze Pilotjahr laut Modell (alle geplanten Offerten)</span></div>
-      <div class="kpi"><b>${chf(wertGew)}</b><span>geschätzter Wert der gewonnenen Aufträge über 5 Jahre (≈ ${chf(wertGew / 5)} pro Jahr)</span></div>
-      <div class="kpi gold"><b>${gewonnen.filter((r) => r.bestandskunde === "nein").length}</b><span>davon Neukunden gewonnen</span></div>
-    </div>
-
-    <h3>Fortschritt pro Quartal</h3>
     <div class="tabelle-wrap"><table class="t"><thead><tr><th scope="col">Quartal</th><th scope="col">Phase</th><th scope="col">Stand</th>
       ${STATUS.map(([, n]) => `<th scope="col" class="n">${n.replace(" – Entscheid offen", "")}</th>`).join("")}<th scope="col" class="n">Gewinnquote</th><th scope="col" class="n">Erwartet<span class="th-sub">laut Modell</span></th><th scope="col"></th></tr></thead><tbody>
       ${Q.map((q) => { const zz = zaehle(q.drin);
@@ -676,7 +665,7 @@ function zeigeCockpit() {
           ${STATUS.map(([k, n]) => `<td class="n" data-label="${n.replace(" – Entscheid offen", "")}">${zz[k]}</td>`).join("")}
           <td class="n" data-label="Gewinnquote"><b>${quote(zz.gewonnen, zz.verloren)}</b></td>
           <td class="n" data-label="Erwartet laut Modell">≈ ${zahl(q.drin.reduce((s, r) => s + r.chance, 0))}</td>
-          <td><button class="mini" type="button" data-oeffne="${esc(q.name)}">Liste öffnen</button></td></tr>`; }).join("")}
+          <td>${rolle.typ === "gl" ? "" : `<button class="mini" type="button" data-oeffne="${esc(q.name)}">Liste öffnen</button>`}</td></tr>`; }).join("")}
     </tbody></table></div>
     ${stapel(z, alle.length, true).replace(/^<div class="stapel"[^]*?<\/div>/, "")}
 
@@ -688,42 +677,12 @@ function zeigeCockpit() {
         <p class="klein">${Q.some((q) => !q.z.pilot) ? "Quartale ohne Vergleich liefern für «nur AM» kein Ergebnis. " : ""}Die Plätze für Neukunden laufen ausserhalb des Vergleichs.</p></div>
       <div class="karte"><b class="t">Gewinnquote nach Gemeindetyp</b>
         <table class="t"><thead><tr><th scope="col">Typ</th><th scope="col" class="n">offeriert</th><th scope="col" class="n">gewonnen</th><th scope="col" class="n">verloren</th><th scope="col" class="n">Gewinnquote</th></tr></thead><tbody>
-        ${["A", "B", "C", "D"].map((t) => zeileErg(chip(t), alle.filter((r) => r.gemeindetyp === t))).join("")}</tbody></table></div>
+        ${["A", "B", "C", "D"].map((t) => zeileErg(chip(t), alle.filter((r) => r.gemeindetyp === t))).join("")}</tbody></table>
+        <p class="klein" style="margin-top:12px">Geschätzter Wert der gewonnenen Aufträge: <b>${chf(wertGew)}</b> über 5 Jahre (≈ ${chf(wertGew / 5)} pro Jahr), davon ${gewonnen.filter((r) => r.bestandskunde === "nein").length} Neukunden.</p></div>
     </div>
-
-    <h3>Offerten im Überblick</h3>
-    <div class="filter">
-      <select id="c-status" aria-label="Status filtern">
-        ${[["offen", "Alle in Arbeit"], ["alle", "Alle Offerten"], ["geplant", "Geplant"], ["bearbeitung", "In Bearbeitung"], ["offeriert", "Offeriert – Entscheid offen"], ["gewonnen", "Gewonnen"], ["verloren", "Verloren"]]
-          .map(([v, n]) => `<option value="${v}" ${v === fst ? "selected" : ""}>${n}</option>`).join("")}
-      </select>
-      <select id="c-zust" aria-label="Zuständigkeit filtern"><option value="">Alle Regionen</option>${rolle.typ === "am" ? `<option value="meine" ${fz === "meine" ? "selected" : ""}>Meine Region (${esc(rolle.am)})</option>` : ""}
-        ${I.regionen.map(([n]) => `<option ${fz === n ? "selected" : ""}>${esc(n)}</option>`).join("")}</select>
-      <span class="klein">${laufend.length} Offerten</span>
-    </div>
-    <div class="tabelle-wrap"><table class="t"><thead><tr><th scope="col">Quartal</th><th scope="col">Gemeinde</th><th scope="col">Typ</th><th scope="col">Produkt · Quelle</th><th scope="col">Gewinnchance</th><th scope="col" class="n">Offertwert</th><th scope="col">Platz</th><th scope="col">Zuständig</th><th scope="col">Status</th></tr></thead><tbody>
-      ${laufend.length ? laufend.slice(0, cZeigen).map((r) => `<tr><td data-label="Quartal">${esc(r.q)}</td>
-        <td class="voll"><button class="link gem-name" type="button" data-cdetail="${esc(r.id)}" data-dq="${esc(r.q)}">${esc(r.gemeindename)}</button> <span class="klein">${esc(r.kanton || "")}</span><span class="meta">${r.bestandskunde === "ja" ? "Bestandskunde" : "Neukunde"}</span></td>
-        <td data-label="Typ">${chip(r.gemeindetyp)}</td><td data-label="Produkt · Quelle">${esc(r.produktlinie)}<span class="meta">${esc(r.quelle)}</span></td>
-        <td data-label="Gewinnchance">${chanceBalken(r.chance)}</td><td class="n" data-label="Offertwert">${rundCHF(r.wert)}</td>
-        <td data-label="Platz"><span class="marke ${PLATZ[r.status][0]}">${PLATZ[r.status][1]}</span></td>
-        <td data-label="Zuständig"><span class="klein">${esc(zustaendig(r))}</span></td>
-        <td data-label="Status">${darf("status", r, r.z) ? statusWahlQ(r) : statusText(r.st)}${fristMarke(r, r.z)}</td></tr>`).join("")
-        : `<tr class="leer"><td colspan="9">Keine Offerte mit diesem Status.</td></tr>`}
-    </tbody></table></div>
-    ${laufend.length > cZeigen ? `<p><button class="knopf sek" type="button" id="c-mehr">Mehr anzeigen</button></p>` : ""}
 
     <h3>Verlauf: wer hat wann was geändert</h3>
-    <div class="karte">${verlauf.length ? `<ul class="verlauf">${verlauf.map((l) => `<li><span class="klein">${new Date(l.t).toLocaleString("de-CH", { dateStyle: "short", timeStyle: "short" })} · ${esc(l.q)} · ${esc(l.wer)}</span><br><b>${esc(l.was)}</b> ${esc(l.text)}</li>`).join("")}</ul>` : '<p class="klein" style="margin:0">Noch keine Änderungen protokolliert.</p>'}</div>
-
-    <h3>So messen wir im Pilot</h3>
-    <div class="karte"><ol style="margin:4px 0;padding-left:20px">${I.pilotSchritte.map((s) => `<li>${s}</li>`).join("")}</ol></div>
-    <h3>Unsere offenen Punkte aus Block 3 – und was der Radar dazu zeigt</h3>
-    <div class="tabelle-wrap"><table class="t"><thead><tr><th scope="col">Offener Punkt</th><th scope="col">Antwort im Radar</th></tr></thead><tbody>
-      ${I.gruppe.offenePunkte.map(([f, a]) => `<tr><td class="voll"><b>${esc(f)}</b></td><td class="voll" data-label="Antwort im Radar">${esc(a)}</td></tr>`).join("")}
-    </tbody></table></div>
-    <h3>Was wir von der Geschäftsleitung brauchen</h3>
-    <div class="merke"><ol style="margin:0;padding-left:20px">${I.antrag.map((a) => `<li>${esc(a)}</li>`).join("")}</ol></div>`;
+    <div class="karte">${verlauf.length ? `<ul class="verlauf">${verlauf.map((l) => `<li><span class="klein">${new Date(l.t).toLocaleString("de-CH", { dateStyle: "short", timeStyle: "short" })} · ${esc(l.q)} · ${esc(l.wer)}</span><br><b>${esc(l.was)}</b> ${esc(l.text)}</li>`).join("")}</ul>` : '<p class="klein" style="margin:0">Noch keine Änderungen protokolliert.</p>'}</div>`;
 }
 // Status-Auswahl im Cockpit: gilt für das Quartal der Zeile
 function statusWahlQ(r) {
@@ -741,48 +700,75 @@ function setzeStatus(qName, id, st, r) {
 
 // Demo: ganzes Pilotjahr mit simuliertem Stand laden
 const zufallVon = (s) => { let h = 2166136261; for (const c of s) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return ((h >>> 0) % 10000) / 10000; };
-async function ladeDemoJahr() {
-  if (register().length > 1 && !confirm("Das Demo-Pilotjahr ersetzt die Quartale Q1–Q4/2027 und ihren Bearbeitungsstand. Weiter?")) return;
+const DEMO_STAENDE = [
+  ["2026-12-22", "Pilotstart", "Vorauswahl Q1 läuft"],
+  ["2027-03-31", "31. März", "Q1 läuft"],
+  ["2027-06-30", "30. Juni", "Zwischenbilanz"],
+  ["2027-09-30", "30. September", "Q3 läuft, Q4 in der Vorauswahl"],
+  ["2027-12-31", "31. Dezember", "Jahresbilanz, Q4 läuft noch"],
+];
+function entferne(k) { ERSATZ.delete(k); try { localStorage.removeItem(k); } catch (e) { /* egal */ } }
+// Löscht Quartale und Bearbeitungsstand – Rolle, Einführung und Darstellung bleiben
+function loescheStand() {
+  register().forEach((q) => { entferne("radar:rows:" + q.name); entferne("radar:" + q.name); });
+  ["radar:quartale", "radar:stand", "radar:aktiv", "radar:demo"].forEach(entferne);
+}
+async function ladeDemoJahr(standIso = "2027-09-30") {
   const d = await fetch("daten/demo_pilotjahr_2027.json").then((r) => r.json());
-  const reg = register().filter((q) => !d.quartale.some((x) => x.name === q.name));
+  loescheStand();
+  const TAG = 86400000, S = Date.parse(standIso + "T00:00:00Z");
+  const clamp = (x) => Math.max(0, Math.min(1, x));
+  const iso = (ms, h = 9) => new Date(Math.min(ms, S + 17 * 3600000) + h * 3600000).toISOString();
+  const reg = [];
   d.quartale.forEach((q, qi) => {
+    const qs = Date.UTC(2027, qi * 3, 1), vorStart = qs - 14 * TAG, freigabe = qs + 4 * TAG;
+    if (S < vorStart) return;   // dieses Quartal hat noch nicht begonnen
     const roh = q.rows.map((r) => ({ ...r, id: r.offerte_id }));
     const SP = ["id", "bfs_nr", "gemeindename", "kanton", "sprachregion", "gemeindetyp", "einwohner", "produktlinie", "quelle", "verfahren", "bestandskunde", "kontakte_12m"];
-    schreib("radar:rows:" + q.name, roh.map((r) => Object.fromEntries(SP.map((s) => [s, r[s]]))));
+    schreib("radar:rows:" + q.name, roh.map((r) => Object.fromEntries(SP.map((k) => [k, r[k]]))));
     reg.push({ name: q.name, quelle: "Demo-Pilotjahr: 320 bisherige Offerten als Opportunitäten" });
     const z = { ...leerZustand(), pilot: true };
-    // Ablauf: Q1 abgeschlossen, Q2 und Q3 freigegeben, Q4 in der Vorauswahl (7 von 11 AM haben abgegeben)
-    const monat = [1, 4, 7, 10][qi];
     let nr = qi * 1000;   // Demo-Einträge: kleine Nummern, echte Änderungen stehen darüber
-    const tag = (m, d) => new Date(Date.UTC(m < 1 ? 2026 : 2027, (m + 11) % 12, d, 8 + (d % 8), 15)).toISOString();
-    const regionen = I.regionen.map(([n]) => n), abgegeben = qi < 3 ? regionen : regionen.slice(0, 7);
-    abgegeben.forEach((n, k) => { z.abgabe[n] = tag(monat - 1, 18 + k % 9); z.log.push({ t: z.abgabe[n], n: ++nr, wer: "AM " + n, was: "Vorauswahl abgegeben", text: n, id: "" }); });
+    const inVorauswahl = S < freigabe, e = (S - freigabe) / TAG, fertig = !inVorauswahl && e >= 170;
+    const regionen = I.regionen.map(([n]) => n);
+    const abgegeben = inVorauswahl ? regionen.slice(0, Math.min(11, 3 + Math.floor((S - vorStart) / TAG))) : regionen;
+    abgegeben.forEach((n, k) => { z.abgabe[n] = iso(vorStart + (k % 9 + 1) * TAG, k % 8); z.log.push({ t: z.abgabe[n], n: ++nr, wer: "AM " + n, was: "Vorauswahl abgegeben", text: n, id: "" }); });
     // Vorauswahl der Account Manager wie heute: Bestandskunden zuerst, dann grosse Gemeinden
     roh.filter((r) => r.einwohner <= 50000).sort((a, b) => (b.bestandskunde === "ja") - (a.bestandskunde === "ja") || b.einwohner - a.einwohner)
       .slice(0, 80).filter((r) => abgegeben.includes(zustaendig(r))).forEach((r) => { z.am[r.id] = 1; });
-    z.phase = qi === 0 ? "abgeschlossen" : qi < 3 ? "freigegeben" : "vorauswahl";
-    if (qi < 3) z.log.push({ t: tag(monat, 5), n: ++nr, wer: I.rollen.vl, was: "Freigabe", text: `${q.name}: 80 Offerten, Kapazität 80, Plätze für Neukunden 10, Vergleich Liste/AM`, id: "" });
-    if (qi === 0) z.log.push({ t: tag(9, 29), n: qi * 1000 + 900, wer: I.rollen.vl, was: "Abschluss", text: q.name, id: "" });
-    const ausgang = Object.fromEntries(roh.map((r) => [r.id, r._ergebnis === "ja" ? "gewonnen" : "verloren"]));
-    auswahlFuer(roh.map(rechne), z).sortiert.filter((r) => DRIN.has(r.status)).forEach((r) => {
-      const p = zufallVon(r.id);
-      const st = qi === 0 ? ausgang[r.id]
-        : qi === 1 ? (p < 0.85 ? ausgang[r.id] : "offeriert")
-        : qi === 2 ? (p < 0.25 ? ausgang[r.id] : p < 0.6 ? "offeriert" : p < 0.9 ? "bearbeitung" : "")
-        : "";
-      if (st) z.erg[r.id] = st;
-      // Eingabefrist: 3 bis 10 Wochen nach Quartalsbeginn
-      if (qi < 3) z.frist[r.id] = new Date(Date.UTC(2027, monat - 1, 5 + 21 + Math.floor(zufallVon(r.id + "f") * (qi === 2 ? 95 : 50)))).toISOString().slice(0, 10);
-    });
-    const n = Object.keys(z.erg).length;
-    if (n) z.log.push({ t: tag(9, 28), n: qi * 1000 + 800, wer: I.rollen.ot, was: "Status nachgeführt", text: `${n} Offerten (Demo)`, id: "" });
+    z.phase = inVorauswahl ? "vorauswahl" : fertig ? "abgeschlossen" : "freigegeben";
+    if (!inVorauswahl) {
+      z.log.push({ t: iso(freigabe), n: ++nr, wer: I.rollen.vl, was: "Freigabe", text: `${q.name}: 80 Offerten, Kapazität 80, Plätze für Neukunden 10, Vergleich Liste/AM`, id: "" });
+      // Fortschritt nach Tagen seit Freigabe: zuerst bearbeitet, dann offeriert, dann entschieden
+      const entschieden = fertig ? 1 : clamp((e - 40) / 110) * 0.95, offeriert = clamp((e - 15) / 90), bearbeitet = clamp(e / 30);
+      const ausgang = Object.fromEntries(roh.map((r) => [r.id, r._ergebnis === "ja" ? "gewonnen" : "verloren"]));
+      auswahlFuer(roh.map(rechne), z).sortiert.filter((r) => DRIN.has(r.status)).forEach((r) => {
+        const p = zufallVon(r.id);
+        const st = p < entschieden ? ausgang[r.id] : p < offeriert ? "offeriert" : p < bearbeitet ? "bearbeitung" : "";
+        if (st) z.erg[r.id] = st;
+        z.frist[r.id] = new Date(freigabe + (21 + Math.floor(zufallVon(r.id + "f") * 60)) * TAG).toISOString().slice(0, 10);
+      });
+      const n = Object.keys(z.erg).length;
+      if (n) z.log.push({ t: iso(S, 7), n: qi * 1000 + 800, wer: I.rollen.ot, was: "Status nachgeführt", text: `${n} Offerten (Demo)`, id: "" });
+      if (fertig) z.log.push({ t: iso(freigabe + 170 * TAG), n: qi * 1000 + 900, wer: I.rollen.vl, was: "Abschluss", text: q.name, id: "" });
+    }
     schreib("radar:" + q.name, z);
   });
-  reg.sort((a, b) => sortQ(a.name) - sortQ(b.name));
   schreib("radar:quartale", reg);
-  schreib("radar:stand", d.stand);
-  zeigeQuartal("Q3/2027");
+  const [j, m, t] = standIso.split("-");
+  schreib("radar:stand", `${t}.${m}.${j}`);
+  schreib("radar:demo", standIso);
+  const aktiv = [...reg].reverse().find((q) => zustandVon(q.name).phase === "freigegeben") || reg[reg.length - 1];
+  zeigeQuartal(aktiv.name);
   zeigeCockpit();
+}
+// Zurück zum Anfang: leeres Demo-Quartal Q1 ohne Bearbeitungsstand
+async function setzeZurueck() {
+  if (!confirm("Den ganzen Stand zurücksetzen? Alle Quartale, Statusangaben, Notizen und der Verlauf in diesem Browser werden gelöscht. Danach ist wieder das leere Demo-Quartal Q1 geladen.")) return false;
+  loescheStand();
+  const demo = await fetch("daten/demo_quartal_2027Q1.csv").then((r) => r.text());
+  ladeQuartal(demo, "Q1/2027", "Demo: 320 Beispiel-Opportunitäten aus bisherigen Offerten");
+  return true;
 }
 // Gemeinsamer Stand für Team und Geschäftsleitung: als Datei weitergeben
 function exportiereJahr() {
@@ -815,6 +801,15 @@ function baueHerleitung() {
   $("#herleitung").innerHTML = `<thead><tr>${sp.map((s) => `<th scope="col">${s}</th>`).join("")}</tr></thead><tbody>` +
     I.herleitung.map((z) => `<tr>${z.map((c, i) => `<td class="voll" data-label="${sp[i]}">${i === 1 ? `<b>${esc(c)}</b>` : esc(c)}</td>`).join("")}</tr>`).join("") + "</tbody>";
   $("#grenzen").innerHTML = I.grenzen.map((g) => `<li>${esc(g)}</li>`).join("");
+  $("#pilot-hintergrund").innerHTML = `
+    <h2 style="margin-top:40px">So messen wir im Pilot</h2>
+    <div class="karte"><ol style="margin:4px 0;padding-left:20px">${I.pilotSchritte.map((x) => `<li>${x}</li>`).join("")}</ol></div>
+    <h3>Unsere offenen Punkte aus Block 3 – und was der Radar dazu zeigt</h3>
+    <div class="tabelle-wrap"><table class="t"><thead><tr><th scope="col">Offener Punkt</th><th scope="col">Antwort im Radar</th></tr></thead><tbody>
+      ${I.gruppe.offenePunkte.map(([f, a]) => `<tr><td class="voll"><b>${esc(f)}</b></td><td class="voll" data-label="Antwort im Radar">${esc(a)}</td></tr>`).join("")}
+    </tbody></table></div>
+    <h3>Was wir von der Geschäftsleitung brauchen</h3>
+    <div class="merke"><ol style="margin:0;padding-left:20px">${I.antrag.map((x) => `<li>${esc(x)}</li>`).join("")}</ol></div>`;
   const g = M.regression;
   $("#reg-text").textContent = `Im Schnitt liegt die Schätzung ${zahl(g.mae)}'000 Franken daneben; 8 von 10 Fehlern liegen zwischen ${zahl(g.band_unten)}'000 und +${zahl(g.band_oben)}'000.`;
 }
@@ -955,7 +950,6 @@ $("#cockpit").addEventListener("click", (e) => {
   const d = e.target.closest("[data-cdetail]"); if (d) oeffneDetail(d.dataset.dq, d.dataset.cdetail);
   if (e.target.id === "bericht") { document.body.classList.add("druck-cockpit"); print(); document.body.classList.remove("druck-cockpit"); }
 });
-$("#demo-jahr").addEventListener("click", ladeDemoJahr);
 $("#jahr-export").addEventListener("click", exportiereJahr);
 $("#jahr-laden").addEventListener("click", () => $("#jahr-datei").click());
 $("#jahr-datei").addEventListener("change", (e) => { if (e.target.files[0]) importiereJahr(e.target.files[0]); e.target.value = ""; });
