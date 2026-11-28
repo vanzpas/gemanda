@@ -326,3 +326,104 @@ body.gesperrt .regler,body.gesperrt #tab-liste>.filter{display:none}
 .regel{margin:12px 0 4px;padding:10px 12px;border-left:4px solid #8a96a3;background:var(--grau-h);border-radius:0 var(--r-s) var(--r-s) 0;font-size:13.5px}
 #cockpit>.phase-zeile{margin-bottom:4px}
 .kpi.haupt .ampel{align-self:flex-start;margin-bottom:4px;color:#fff}
+
+/* =====================================================================
+   Ansichten für die tägliche Arbeit (Übersicht, Board, Details, Profil)
+   ===================================================================== */
+[hidden]{display:none!important}
+.kopf-rechts{display:flex;align-items:center;gap:10px;margin-left:auto;padding-bottom:12px;flex-wrap:wrap}
+.kopf-rechts .rolle{padding-bottom:0;margin-left:0}
+.hilfe-knopf{min-height:36px;border-radius:var(--r-s);border:1px solid rgba(255,255,255,.35);background:transparent;color:#fff;padding:4px 12px;cursor:pointer;font-size:13px}
+.hilfe-knopf:hover{background:rgba(255,255,255,.12)}
+.link{background:none;border:0;padding:0;color:var(--blau);cursor:pointer;text-align:left;font:inherit;font-weight:600;text-decoration:underline;text-decoration-color:var(--blau-rand);text-underline-offset:3px}
+.link:hover{text-decoration-color:var(--blau)}
+.link.gem-name{font-size:15px}
+
+/* Chance in Worten */
+.chance{display:flex;align-items:center;gap:8px;white-space:nowrap;font-size:13.5px}
+.chance .spur{width:56px;height:6px;border-radius:3px;background:var(--linie);display:block;overflow:hidden;flex:none}
+.chance .spur i{display:block;height:100%;border-radius:3px;background:var(--grau-hell)}
+.chance-hoch .spur i{background:#1a8a5f}.chance-mittel .spur i{background:#2a78d6}.chance-tief .spur i{background:#8a96a3}
+.chance-hoch>span:last-child{font-weight:700;color:var(--gruen)}
+.chance-wort{font-size:13px;font-weight:600}
+.chance-wort.chance-hoch{color:var(--gruen)}.chance-wort.chance-mittel{color:var(--blau)}.chance-wort.chance-tief{color:var(--grau)}
+
+/* Fristen */
+.frist{display:inline-block;margin:4px 0 0 6px;font-size:12px;padding:2px 8px;border-radius:999px;background:var(--grau-h);color:var(--grau);border:1px solid var(--linie);white-space:nowrap}
+.frist.gelb{background:var(--gold-h);color:var(--gold);border-color:var(--gold-rand)}
+.frist.rot{background:var(--rot-h);color:var(--rot);border-color:#f2c4c1;font-weight:700}
+.kpi.rot,.kachel.rot{border-left:4px solid var(--rot)}
+
+/* Kompakte Liste */
+table.kompakt .meta{margin-top:3px;display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center}
+table.kompakt .begr{max-width:380px}
+
+/* Board */
+.board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;align-items:start}
+.board-spalte{background:var(--grau-h);border:1px solid var(--linie);border-radius:var(--r-m);padding:10px;min-width:0}
+.board-spalte h3{margin:2px 4px 10px;font-size:14px;display:flex;align-items:center;gap:8px}
+.board-spalte h3 i{width:10px;height:10px;border-radius:3px}
+.anzahl{display:inline-block;min-width:22px;padding:0 7px;border-radius:999px;background:var(--flaeche);border:1px solid var(--linie);font-size:12px;text-align:center;color:var(--grau);font-weight:600}
+.board-karte{background:var(--flaeche);border:1px solid var(--linie);border-radius:var(--r-s);padding:10px 12px;margin-bottom:8px;box-shadow:var(--schatten);display:flex;flex-direction:column;gap:6px}
+.board-karte.ueber{border-left:4px solid var(--rot)}
+.board-karte .meta{display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center;font-size:12.5px}
+.karte-zeile{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center}
+.karte-zeile .frist{margin:0}
+.karte-knoepfe{display:flex;gap:6px;flex-wrap:wrap}
+.leer-spalte{text-align:center;margin:12px 0}
+.weiter{font-weight:600;color:var(--blau);border-color:var(--blau-rand)}
+.weiter.gruen{color:var(--gruen);border-color:var(--gruen-rand)}.weiter.rot{color:var(--rot);border-color:#f2c4c1}
+
+/* Seitenblatt (Details, Profil) */
+dialog.seitenblatt{margin:0 0 0 auto;height:100vh;max-height:100vh;width:min(560px,100%);max-width:100%;border-radius:var(--r-l) 0 0 var(--r-l);overflow:auto}
+dialog.seitenblatt>div{padding:22px 24px 32px}
+.blatt-kopf{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;border-bottom:1px solid var(--linie);padding-bottom:12px;margin-bottom:8px}
+.blatt-kopf h2{margin:0}.blatt-kopf p{margin:0}
+.blatt-kopf .meta{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center;margin-top:6px}
+.schliessen{background:none;border:1px solid var(--linie);border-radius:50%;width:36px;height:36px;font-size:22px;line-height:1;cursor:pointer;color:var(--grau);flex:none}
+.blatt-chance{background:var(--grau-h);border-radius:var(--r-s);padding:12px 14px;margin:12px 0}
+.blatt-chance .chance{font-size:16px}.blatt-chance p{margin:6px 0 0}
+dialog.seitenblatt h3{margin:20px 0 8px;font-size:14px;text-transform:uppercase;letter-spacing:.04em;color:var(--grau)}
+.fakten{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0;font-size:14px}
+.fakten dt{color:var(--grau)}.fakten dd{margin:0}
+.stand-zeile{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:8px 0}
+.stand-zeile .frist{margin:0}
+dialog.seitenblatt textarea{width:100%;margin-top:6px}
+
+/* Übersicht */
+.start-kopf{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.start-kopf h2{margin:0}.start-kopf p{margin:0}
+.suche-gross input{min-width:300px}
+.fazit{display:flex;gap:12px;align-items:flex-start;background:var(--flaeche);border:1px solid var(--linie);border-left:6px solid #8a96a3;border-radius:var(--r-m);padding:16px 18px;margin:14px 0 18px;box-shadow:var(--schatten)}
+.fazit p{margin:0;font-size:18px;line-height:1.45}
+.ampel-punkt{width:14px;height:14px;border-radius:50%;flex:none;margin-top:6px}
+.drei-kacheln{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:18px}
+.kachel{background:var(--flaeche);border:1px solid var(--linie);border-radius:var(--r-m);padding:16px 18px;box-shadow:var(--schatten);display:flex;flex-direction:column;gap:4px}
+.kachel-titel{font-size:12.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--grau)}
+.kachel b{font-size:32px;line-height:1.15;font-variant-numeric:tabular-nums}
+.kachel b small{font-size:15px;font-weight:400;color:var(--grau)}
+.kachel>span:last-of-type{font-size:13px;color:var(--grau)}
+.kachel .stapel{margin-top:8px}
+.liste-einfach{margin:6px 0 0;padding-left:18px}.liste-einfach li{margin-bottom:8px;font-size:14px}
+.aufgaben{list-style:none;margin:0;padding:0;background:var(--flaeche);border:1px solid var(--linie);border-radius:var(--r-m);box-shadow:var(--schatten)}
+.aufgabe{display:flex;justify-content:space-between;align-items:center;gap:8px 16px;padding:12px 16px;border-bottom:1px solid var(--linie);flex-wrap:wrap}
+.aufgabe:last-child{border-bottom:0}
+.aufgabe .meta{display:block}
+.aufgabe-rechts{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.aufgabe-rechts .frist{margin:0}
+.aufruf{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;background:var(--blau-h);border:1px solid var(--blau-rand);border-left:6px solid var(--blau);border-radius:var(--r-m);padding:14px 18px;margin:0 0 16px}
+.hilfe-schritte{padding-left:22px}.hilfe-schritte li{margin-bottom:10px}
+#hilfe form{padding:24px}
+
+@media (max-width:1024px){.board{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:760px){
+  .kopf-rechts{width:100%;padding-bottom:6px}.kopf-rechts .rolle{flex:1}
+  .board{grid-template-columns:1fr}
+  .drei-kacheln{grid-template-columns:1fr}
+  .suche-gross,.suche-gross input{width:100%;min-width:0}
+  .fazit p{font-size:16px}
+  dialog.seitenblatt{width:100%;border-radius:0}
+  dialog.seitenblatt>div{padding:16px}
+  .fakten{grid-template-columns:1fr}.fakten dt{margin-top:6px}
+  table.kompakt td.nur-gross{display:none!important}
+}

@@ -158,6 +158,30 @@ window.INHALT = {
     text: "Der Pilot gilt als erfolgreich, wenn die Gewinnquote «nur Liste» nach vier Quartalen mindestens 5 Prozentpunkte über «nur AM» liegt.",
   },
 
+  // Kurze Einführung pro Rolle (erscheint beim ersten Besuch, jederzeit über «So funktioniert's»)
+  hilfe: {
+    am: ["Account Manager", [
+      "<b>Übersicht</b> zeigt eure Aufgaben: offene Vorauswahl, eure Offerten in Arbeit und was zuletzt entschieden wurde.",
+      "<b>Vorauswahl:</b> Zu Beginn des Quartals markiert ihr in eurer Region, was ihr offerieren würdet. Die Liste mit den Chancen seht ihr erst danach.",
+      "<b>Gemeinde suchen</b> öffnet das Profil: Typ, Produkte, laufende Offerten – ideal vor einem Termin.",
+    ]],
+    ot: ["Offert-Team", [
+      "<b>Übersicht</b> zeigt, was überfällig ist und was in den nächsten zwei Wochen fällig wird.",
+      "<b>Board</b> in der Offertliste: eine Karte pro Offerte. Mit «Weiter →» rückt sie in den nächsten Schritt.",
+      "<b>Details</b> zu jeder Offerte: Begründung, Offertwert, Frist, Notizen und Verlauf.",
+    ]],
+    vl: ["Vertriebsleitung", [
+      "<b>Übersicht</b> zeigt, was euren Entscheid braucht: Freigaben, Verzug, Einwände der Account Manager.",
+      "<b>Offertliste:</b> Kapazität und Plätze für Neukunden einstellen, die Liste freigeben und das Quartal abschliessen.",
+      "<b>Pilotjahr:</b> das ausführliche Cockpit mit Entscheidungsregel und Bericht für die Geschäftsleitung.",
+    ]],
+    gl: ["Geschäftsleitung", [
+      "<b>Übersicht:</b> ein Satz, drei Zahlen und eine Ampel – liegt der Pilot im Plan?",
+      "<b>Pilotjahr:</b> Fortschritt pro Quartal, Vergleich Liste gegen Erfahrung und der Bericht zum Drucken.",
+      "<b>So rechnet der Radar:</b> woher die Zahlen kommen und wo ihre Grenzen liegen.",
+    ]],
+  },
+
   // So läuft das Pilotjahr (Cockpit)
   pilotSchritte: [
     "<b>Ein Jahr, vier Quartale:</b> Q1 bis Q4 2027, je 80 Offerten – rund 320 Offerten. Das reicht, damit Zufallsschwankungen (etwa ±5 Aufträge pro Quartal) den Vergleich nicht verdecken, und auch spät entscheidende Gemeinden fliessen ein.",

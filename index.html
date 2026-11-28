@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#0b3a5c">
 <title>GovTech-Marktradar · Gemanda</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b3a5c'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='%23fff' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='4' fill='none' stroke='%23fff' stroke-width='2'/%3E%3Cpath d='M16 16 L24 9' stroke='%23c9962b' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="style.css?v=8">
+<link rel="stylesheet" href="style.css?v=9">
 </head>
 <body>
 <a class="skip" href="#inhalt">Zum Inhalt springen</a>
@@ -22,12 +22,15 @@
         <h1>GovTech-Marktradar</h1>
       </div>
     </div>
-    <label class="rolle" for="rolle-wahl"><span>Ansicht als</span><select id="rolle-wahl"></select></label>
+    <div class="kopf-rechts">
+      <label class="rolle" for="rolle-wahl"><span>Ansicht als</span><select id="rolle-wahl"></select></label>
+      <button class="hilfe-knopf" id="hilfe-knopf" type="button">So funktioniert's</button>
+    </div>
     <nav id="tabs" role="tablist" aria-label="Ansichten">
-      <button role="tab" id="t-liste" data-tab="liste" aria-controls="tab-liste" aria-selected="true">Offertliste</button>
+      <button role="tab" id="t-start" data-tab="start" aria-controls="tab-start" aria-selected="true">Übersicht</button>
+      <button role="tab" id="t-liste" data-tab="liste" aria-controls="tab-liste" aria-selected="false" tabindex="-1">Offertliste</button>
       <button role="tab" id="t-pilotjahr" data-tab="pilotjahr" aria-controls="tab-pilotjahr" aria-selected="false" tabindex="-1">Pilotjahr</button>
       <button role="tab" id="t-gemeinden" data-tab="gemeinden" aria-controls="tab-gemeinden" aria-selected="false" tabindex="-1">Gemeinden</button>
-      <button role="tab" id="t-pilot" data-tab="pilot" aria-controls="tab-pilot" aria-selected="false" tabindex="-1">Rückblick</button>
       <button role="tab" id="t-herleitung" data-tab="herleitung" aria-controls="tab-herleitung" aria-selected="false" tabindex="-1">So rechnet der Radar</button>
     </nav>
   </div>
@@ -35,8 +38,13 @@
 <div class="hinweis-band"><p id="datenhinweis"></p></div>
 
 <main id="inhalt" tabindex="-1">
+<!-- ============================ ÜBERSICHT ============================ -->
+<section id="tab-start" class="tab aktiv" role="tabpanel" aria-labelledby="t-start">
+  <div id="start"><div class="lade">Daten werden geladen …</div></div>
+</section>
+
 <!-- ============================ OFFERTLISTE ============================ -->
-<section id="tab-liste" class="tab aktiv" role="tabpanel" aria-labelledby="t-liste">
+<section id="tab-liste" class="tab" role="tabpanel" aria-labelledby="t-liste">
   <div class="zeile-oben">
     <div>
       <div class="quartal-zeile"><h2 id="quartal-titel">Offertliste</h2>
@@ -57,15 +65,22 @@
   <div class="karte phase" id="phase"></div>
   <div class="regler">
     <label for="kap">Offerten pro Quartal <input class="feld" type="number" id="kap" min="10" max="320" value="80" inputmode="numeric"></label>
-    <label for="entd">davon Entdeckungsplätze <input class="feld" type="number" id="entd" min="0" max="40" value="10" inputmode="numeric">
-      <span class="info" tabindex="0" role="button" aria-label="Erklärung Entdeckungsplätze" data-info="Plätze für Neukunden mit der besten Chance unter dem Schnitt. Das Modell kennt nur Fälle, bei denen bisher etwas unternommen wurde – so lernt es Neues. Kostet im Rückblick im Schnitt unter einem Auftrag pro Quartal.">?</span></label>
+    <label for="entd">davon Plätze für Neukunden <input class="feld" type="number" id="entd" min="0" max="40" value="10" inputmode="numeric">
+      <span class="info" tabindex="0" role="button" aria-label="Erklärung Plätze für Neukunden" data-info="Reservierte Plätze für Neukunden mit der besten Chance unter dem Schnitt. Das Modell kennt nur Fälle, bei denen bisher etwas unternommen wurde – so lernt es Neues. Kostet im Rückblick im Schnitt unter einem Auftrag pro Quartal.">?</span></label>
+    <label class="check" for="pilotmodus"><input type="checkbox" id="pilotmodus"> Vergleich Liste / Account Manager
+      <span class="info" tabindex="0" role="button" aria-label="Erklärung Vergleich" data-info="Fälle, die Liste und Account Manager beide wählen, werden offeriert. Die übrigen Plätze teilen sich je zur Hälfte die besten Fälle «nur Liste» und «nur AM» – so gibt es für beide Seiten ein Ergebnis, und der Pilot kann Liste gegen Erfahrung messen.">?</span></label>
   </div>
 
   <div class="kpis" id="kpis" aria-live="polite"><div class="lade">Modelle und Demo-Quartal werden geladen …</div></div>
   <div class="karte fortschritt" id="fortschritt"></div>
 
   <div class="filter" role="search" aria-label="Offertliste filtern">
-    <div class="seg" id="ansicht" role="group" aria-label="Ansicht">
+    <div class="seg" id="modus" role="group" aria-label="Darstellung">
+      <button data-v="kompakt" class="an" aria-pressed="true" type="button">Kompakt</button>
+      <button data-v="board" aria-pressed="false" type="button">Board</button>
+      <button data-v="voll" aria-pressed="false" type="button">Alle Spalten</button>
+    </div>
+    <div class="seg" id="ansicht" role="group" aria-label="Auswahl">
       <button data-v="alle" class="an" aria-pressed="true" type="button">Alle</button>
       <button data-v="liste" aria-pressed="false" type="button">Auf der Liste</button>
       <button data-v="unter" aria-pressed="false" type="button">Unter dem Schnitt</button>
@@ -75,14 +90,13 @@
     <select id="f-status" aria-label="Status">
       <option value="">Alle Status</option><option value="geplant">Geplant</option><option value="bearbeitung">In Bearbeitung</option>
       <option value="offeriert">Offeriert – Entscheid offen</option><option value="gewonnen">Gewonnen</option><option value="verloren">Verloren</option>
+      <option value="ueberfaellig">Überfällig</option>
     </select>
     <input type="search" id="suche" placeholder="Gemeinde suchen" aria-label="Gemeinde suchen">
-    <label class="check"><input type="checkbox" id="pilot-spalten"> Pilot-Spalten</label>
-    <label class="check"><input type="checkbox" id="pilotmodus"> Pilotmodus
-      <span class="info" tabindex="0" role="button" aria-label="Erklärung Pilotmodus" data-info="Fälle, die Liste und Account Manager beide wählen, werden offeriert. Die übrigen Plätze teilen sich je zur Hälfte die besten Fälle «nur Liste» und «nur AM» – so gibt es für beide Seiten ein Ergebnis, und der Pilot kann Liste gegen Erfahrung messen.">?</span></label>
   </div>
 
-  <div class="tabelle-wrap"><table class="t" id="liste" aria-label="Offertliste"></table></div>
+  <div class="tabelle-wrap" id="liste-wrap"><table class="t" id="liste" aria-label="Offertliste"></table></div>
+  <div id="board" class="board" hidden></div>
 </section>
 
 <!-- ============================ PILOTJAHR ============================ -->
@@ -106,7 +120,7 @@
 <!-- ============================ GEMEINDEN ============================ -->
 <section id="tab-gemeinden" class="tab" role="tabpanel" aria-labelledby="t-gemeinden">
   <h2>Gemeinden: Wer braucht was?</h2>
-  <p class="lead">Alle 2'172 Schweizer Gemeinden (Gemeindestand 2021) mit Typ, Kundenstatus und nächstem passendem Produkt – Grundlage für die Strategie 2030 «Gesamtpartner der Gemeinden». Der Typ kommt aus der Analyse von Block 2 und wird einmal im Jahr mit neuen BFS-Zahlen nachgerechnet.</p>
+  <p class="lead">Alle 2'172 Schweizer Gemeinden (Gemeindestand 2021) mit Typ, Kundenstatus und nächstem passendem Produkt – Grundlage für die Strategie 2030 «Gesamtpartner der Gemeinden». Ein Klick auf eine Gemeinde öffnet ihr Profil.</p>
   <div class="typkarten" id="typkarten"></div>
   <div class="filter" role="search" aria-label="Gemeinden filtern">
     <select id="g-typ" aria-label="Gemeindetyp"><option value="">Alle Typen</option></select>
@@ -130,24 +144,22 @@
   <p><button class="knopf sek" id="g-mehr" type="button">Mehr anzeigen</button></p>
 </section>
 
-<!-- ============================ PILOT ============================ -->
-<section id="tab-pilot" class="tab" role="tabpanel" aria-labelledby="t-pilot">
-  <h2>Rückblick: Was hätte die Liste gebracht?</h2>
-  <p class="lead">Geprüft an 900 Offerten aus der Vergangenheit, die das Modell beim Lernen nie gesehen hat. 80 von 320 sind 25 % – darum zählen wir die Treffer unter den obersten 225 und rechnen auf 80 Offerten um.</p>
-  <div id="rueckblick"></div>
-</section>
-
-<!-- ============================ HERLEITUNG ============================ -->
+<!-- ============================ HERLEITUNG UND RÜCKBLICK ============================ -->
 <section id="tab-herleitung" class="tab" role="tabpanel" aria-labelledby="t-herleitung">
   <h2>Von der Analyse zum Tool</h2>
   <p class="lead">Jedes Element im Marktradar folgt aus einem Ergebnis unserer Analyse.</p>
   <div class="merke"><b>Was heisst das für unser Tool?</b> <span id="tool-satz-2"></span></div>
   <div class="tabelle-wrap"><table class="t" id="herleitung" aria-label="Von der Analyse zum Tool"></table></div>
+
+  <h2 style="margin-top:40px">Rückblick: Was hätte die Liste gebracht?</h2>
+  <p class="lead">Geprüft an 900 Offerten aus der Vergangenheit, die das Modell beim Lernen nie gesehen hat. 80 von 320 sind 25 % – darum zählen wir die Treffer unter den obersten 225 und rechnen auf 80 Offerten um.</p>
+  <div id="rueckblick"></div>
+
   <h2 style="margin-top:40px">Was der Radar rechnet</h2>
   <div class="zwei">
-    <div class="karte"><b class="t">Gewinnchance</b>Logistische Regression auf 3'000 entschiedenen Offerten 2017–2025. Merkmale bei der Erfassung: Gemeindetyp, Produktlinie, Quelle, Verfahren, Bestandskunde, Kontakte, Sprachregion. Der Offertwert ist kein Merkmal – er steht erst nach der Ausarbeitung fest.</div>
+    <div class="karte"><b class="t">Gewinnchance</b>Logistische Regression auf 3'000 entschiedenen Offerten 2017–2025. Merkmale bei der Erfassung: Gemeindetyp, Produktlinie, Quelle, Verfahren, Bestandskunde, Kontakte, Sprachregion. Der Offertwert ist kein Merkmal – er steht erst nach der Ausarbeitung fest. In der Liste steht die Chance in Worten: hoch (ab 5 von 10), mittel (ab 2,5 von 10), tief.</div>
     <div class="karte"><b class="t">Offertwert</b>Lineare Regression: Einwohner, Produktlinie, Bestandskunde, Kontakte. Wir zeigen immer eine Bandbreite – den Bereich, in dem 8 von 10 Fehlern liegen. <span id="reg-text"></span></div>
-    <div class="karte"><b class="t">Erwarteter Auftragswert</b>Gewinnchance × geschätzter Offertwert. Er steht als Information neben jeder Zeile – sortiert wird nach Gewinnchance, weil das Ziel möglichst viele Aufträge ist.</div>
+    <div class="karte"><b class="t">Wert × Chance</b>Gewinnchance × geschätzter Offertwert, der erwartete Auftragswert. Er steht als Information in der Detailansicht – sortiert wird nach Gewinnchance, weil das Ziel möglichst viele Aufträge ist.</div>
     <div class="karte"><b class="t">Einmal trainiert, dann angewendet</b>Die Modelle werden einmal gerechnet und gespeichert. Der Radar wendet sie im Browser an; hochgeladene Dateien verlassen den Computer nicht.</div>
   </div>
   <h2 style="margin-top:40px">Grenzen</h2>
@@ -156,7 +168,9 @@
 </main>
 <footer id="fuss"></footer>
 <div id="tip" role="tooltip"></div>
+<datalist id="gemeinde-liste"></datalist>
 
+<!-- Begründung für AM-Entscheide -->
 <dialog id="grund-dialog" aria-labelledby="grund-titel">
   <form method="dialog">
     <h2 id="grund-titel">Begründung</h2>
@@ -169,7 +183,16 @@
     </div>
   </form>
 </dialog>
-<script src="inhalte.js?v=8"></script>
-<script src="app.js?v=8"></script>
+
+<!-- Detailansicht einer Offerte -->
+<dialog id="detail" class="seitenblatt" aria-labelledby="detail-titel"><div id="detail-inhalt"></div></dialog>
+<!-- Gemeinde-Profil -->
+<dialog id="profil" class="seitenblatt" aria-labelledby="profil-titel"><div id="profil-inhalt"></div></dialog>
+<!-- Einführung pro Rolle -->
+<dialog id="hilfe" aria-labelledby="hilfe-titel"><div id="hilfe-inhalt"></div></dialog>
+
+<script src="inhalte.js?v=9"></script>
+<script src="app.js?v=9"></script>
+<script src="ansichten.js?v=9"></script>
 </body>
 </html>
