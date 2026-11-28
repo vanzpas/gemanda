@@ -122,28 +122,40 @@
     "test": 548,
     "ja_anteil": 0.13,
     "auf_liste": 99,
-    "anteil_auf_liste": 0.181
+    "anteil_auf_liste": 0.181,
+    "anteil_an_liste": 0.44,
+    "anteil_offerten": 0.617,
+    "anteil_gemeinden": 0.318
    },
    {
     "typ": "B",
     "test": 156,
     "ja_anteil": 0.186,
     "auf_liste": 45,
-    "anteil_auf_liste": 0.288
+    "anteil_auf_liste": 0.288,
+    "anteil_an_liste": 0.2,
+    "anteil_offerten": 0.183,
+    "anteil_gemeinden": 0.261
    },
    {
     "typ": "C",
     "test": 107,
     "ja_anteil": 0.355,
     "auf_liste": 49,
-    "anteil_auf_liste": 0.458
+    "anteil_auf_liste": 0.458,
+    "anteil_an_liste": 0.218,
+    "anteil_offerten": 0.112,
+    "anteil_gemeinden": 0.283
    },
    {
     "typ": "D",
     "test": 89,
     "ja_anteil": 0.191,
     "auf_liste": 32,
-    "anteil_auf_liste": 0.36
+    "anteil_auf_liste": 0.36,
+    "anteil_an_liste": 0.142,
+    "anteil_offerten": 0.088,
+    "anteil_gemeinden": 0.138
    }
   ],
   "gewinnkurve": [
@@ -168,6 +180,98 @@
    0.994,
    1.0,
    1.0
+  ],
+  "top10": [
+   {
+    "id": "O11337",
+    "gemeinde": "Buttwil",
+    "typ": "C",
+    "chance": 0.8983,
+    "bestandskunde": "ja",
+    "quelle": "Anfrage der Gemeinde",
+    "produkt": "Fiskal"
+   },
+   {
+    "id": "O11757",
+    "gemeinde": "Kemmental",
+    "typ": "C",
+    "chance": 0.8692,
+    "bestandskunde": "ja",
+    "quelle": "Anfrage der Gemeinde",
+    "produkt": "Fiskal"
+   },
+   {
+    "id": "O10670",
+    "gemeinde": "Elsau",
+    "typ": "C",
+    "chance": 0.8227,
+    "bestandskunde": "ja",
+    "quelle": "Anfrage der Gemeinde",
+    "produkt": "Schalter"
+   },
+   {
+    "id": "O11922",
+    "gemeinde": "Massongex",
+    "typ": "C",
+    "chance": 0.8042,
+    "bestandskunde": "ja",
+    "quelle": "Anfrage der Gemeinde",
+    "produkt": "Schalter"
+   },
+   {
+    "id": "O11067",
+    "gemeinde": "Dinhard",
+    "typ": "C",
+    "chance": 0.8021,
+    "bestandskunde": "ja",
+    "quelle": "Anfrage der Gemeinde",
+    "produkt": "Campus"
+   },
+   {
+    "id": "O11607",
+    "gemeinde": "Benken (SG)",
+    "typ": "C",
+    "chance": 0.8008,
+    "bestandskunde": "ja",
+    "quelle": "Anfrage der Gemeinde",
+    "produkt": "Fiskal"
+   },
+   {
+    "id": "O10342",
+    "gemeinde": "Eschlikon",
+    "typ": "A",
+    "chance": 0.7938,
+    "bestandskunde": "ja",
+    "quelle": "Anfrage der Gemeinde",
+    "produkt": "Fiskal"
+   },
+   {
+    "id": "O12330",
+    "gemeinde": "Lommis",
+    "typ": "C",
+    "chance": 0.7921,
+    "bestandskunde": "ja",
+    "quelle": "Anfrage der Gemeinde",
+    "produkt": "Schalter"
+   },
+   {
+    "id": "O10841",
+    "gemeinde": "Feldbrunnen-St. Niklaus",
+    "typ": "D",
+    "chance": 0.7821,
+    "bestandskunde": "ja",
+    "quelle": "Anfrage der Gemeinde",
+    "produkt": "Schalter"
+   },
+   {
+    "id": "O11172",
+    "gemeinde": "Schötz",
+    "typ": "C",
+    "chance": 0.7516,
+    "bestandskunde": "ja",
+    "quelle": "Anfrage der Gemeinde",
+    "produkt": "Fiskal"
+   }
   ],
   "nutzen": {
    "plus_auftraege_q": [

@@ -5,6 +5,32 @@
 // Musterlösungen 2–4 – ersetzt sie durch eure eigenen Deutungen.
 // =====================================================================
 window.INHALT = {
+  // ---------------------------------------------------------------
+  // Unsere eigenen Erkenntnisse aus Block 3 (Ergebnis_Block3.html)
+  // ---------------------------------------------------------------
+  gruppe: {
+    toolSatz: "Anfragen von Gemeinden, von Typ C, die Bestandskunden sind, sollen priorisiert werden.",
+    warumSatz: "Nicht alle Gemeindetypen gewinnen wir gleich oft. Das Offert-Team steckt am meisten Arbeit in Typ A, aber Typ C ist am erfolgversprechendsten.",
+    verschiebung: "Die Arbeit verschiebt sich von Typ A nach Typ C.",
+    // Unsere drei wichtigsten Merkmale: [Merkmal, Spalte, Wert, Vergleichsname, Vergleichswert]
+    merkmale: [
+      ["Bestandskunden", "bestandskunde", "ja", "Neukunden", "nein"],
+      ["Anfragen von Gemeinden", "quelle", "Anfrage der Gemeinde", "Account Manager", "Account Manager"],
+      ["Typ C", "gemeindetyp", "C", "Typ A", "A"],
+    ],
+    wennDann: [
+      ["eine Bestandskundin selbst bei uns anfragt", "gewinnen wir etwa jede zweite Offerte"],
+      ["es eine Neukundin ohne Anfrage der Gemeinde ist", "gewinnen wir nur etwa jede 23. Offerte"],
+    ],
+    // Offene Punkte aus Block 3 – und wo der Radar sie beantwortet
+    offenePunkte: [
+      ["Test mit Opportunitäten ausserhalb der Liste: Wie viele Offerten pro Quartal, und wie lange?",
+       "10 Entdeckungsplätze pro Quartal (einstellbar) und ein Pilot über ein Jahr (4 Quartale, 320 Offerten). Im Rückblick kostet das im Schnitt 0,6 Aufträge und bringt 15 statt 6 Neukunden pro Quartal."],
+      ["Beispiel für den Marktradar (Schritt 6, Regression)",
+       "Der Radar zeigt pro Opportunität den Offertwert mit Bandbreite, z. B. Fiskal, 5'000 Einwohner, Neukunde, 1 Kontakt: rund CHF 183'000, wahrscheinlich zwischen 141'000 und 226'000. Als Gruppe noch nachrechnen und bestätigen."],
+    ],
+  },
+
   datenhinweis:
     "Kennzahlen für den Unterricht verändert – keine Aussagen über einzelne Gemeinden. " +
     "Gemeindename, BFS-Nummer, Kanton und Sprachgebiet sind echt; Gemanda AG und alle Offerten sind frei erfunden.",
@@ -57,11 +83,11 @@ window.INHALT = {
     ["Typ C: 28 % aller Gemeinden, aber nur 11 % der Offerten – und 32 % gewonnen; gut die Hälfte in der Romandie",
      "Filter «Kampagne: Typ C ohne Offerte» und Hinweis Romandie",
      "Weiter vor allem in Zentrums- und Agglomerationsgemeinden offerieren, wo wir seltener gewinnen"],
-    ["Gewinnchance pro Fall (Schritt 5): mit der Liste ≈ 34 statt ≈ 14 Aufträge aus 80 Offerten",
+    ["Gewinnchance pro Fall (Schritt 5): mit der Liste rund 34 statt rund 14 Aufträge aus 80 Offerten, je nach Aufteilung 34 bis 37",
      "Offertliste, sortiert nach Gewinnchance, Schnitt bei 80 Offerten",
      "Nach Eingang offerieren, bis das Team voll ist – oder nach Offertwert, obwohl grosse Aufträge seltener gewonnen werden"],
-    ["Treiber: Bestandskunde fragt selbst an 51 %, Neukunde ohne eigene Anfrage 4 %, simap 2 %",
-     "Eine Zeile Begründung pro Fall, in Ja-Anteilen statt Modellzahlen",
+    ["Unsere drei wichtigsten Merkmale: Bestandskunden 33 % (Neukunden 7 %), Anfragen von Gemeinden 33 % (Account Manager 14 %), Typ C 33 % (Typ A 14 %). Bestandskundin fragt selbst an: etwa jede zweite gewonnen; Neukundin ohne Anfrage: etwa jede 23.",
+     "Eine Zeile Begründung pro Fall in unseren Wenn-dann-Worten («etwa jede zweite gewonnen»); Abschnitt «Woran man gute Chancen erkennt»",
      "Eine Liste ohne Erklärung, der die Account Manager nicht folgen"],
     ["240 von 320 Opportunitäten pro Quartal bekommen keine Offerte; kleine Gemeinden haben weder Zeit noch Geld für Ausschreibungen",
      "«Kein Fall fällt durch»: Weg für jeden Fall unter dem Schnitt (Standardpaket, Partner, bewusst nicht, Wiedervorlage)",
@@ -79,7 +105,7 @@ window.INHALT = {
      "«Nächstes Produkt» pro Gemeinde und Filter «Kundinnen: nächstes Produkt»",
      "Jedes Produkt einzeln verkaufen und die Bestandskunden nicht als Gesamtpartner behandeln"],
     ["Der Gewinn 34 statt 14 gilt gegenüber Zufall – nicht gegenüber der Erfahrung der Account Manager. Wert in Franken: CHF 1,7–2,2 Mio. Mehrumsatz pro Jahr, ebenfalls gegenüber Zufall",
-     "Pilotmodus: AM wählt blind vor, Streitfälle werden je zur Hälfte nach Liste und nach AM offeriert; Auswertung Liste gegen AM",
+     "Pilotjahr mit Cockpit: Status jeder Offerte, Fortschritt pro Quartal, Gewinnquote; Pilotmodus mit blinder AM-Vorauswahl, Streitfälle je zur Hälfte nach Liste und nach AM",
      "Einen Nutzen versprechen, der gegenüber heute vermutlich kleiner ist – und ihn im Pilot nicht messen können"],
     ["Vergangenheit ist nicht Zukunft: ab 2027 kommen wegen E-ID andere Opportunitäten",
      "Warnung, wenn der Mix eines Quartals stark von den Trainingsdaten abweicht",
@@ -96,11 +122,57 @@ window.INHALT = {
     "Der Radar vergibt eine Priorität für unsere interne Planung. Gemeinden sehen nie eine Zahl.",
   ],
 
+  // ---------------------------------------------------------------
+  // Rollen und Zuständigkeiten (Stufe A: im Browser simuliert, ohne Login)
+  // ---------------------------------------------------------------
+  rollen: {
+    am: "Account Manager",
+    ot: "Offert-Team",
+    vl: "Vertriebsleitung",
+    gl: "Geschäftsleitung",
+  },
+  // 11 Account Manager wie im Case, davon 2 für die Romandie. Zuständig nach Kanton;
+  // grosse Gemeinden betreut der Key Account. Keine Personennamen – Regionen statt Personen.
+  keyAccountAb: 20000,
+  regionen: [
+    ["Key Account", []],
+    ["Zürich", ["ZH"]],
+    ["Ostschweiz", ["SG", "AR", "AI", "GL"]],
+    ["Thurgau und Schaffhausen", ["TG", "SH"]],
+    ["Graubünden und Tessin", ["GR", "TI"]],
+    ["Zentralschweiz", ["LU", "ZG", "SZ", "UR", "OW", "NW"]],
+    ["Aargau", ["AG"]],
+    ["Bern", ["BE"]],
+    ["Solothurn und Basel", ["SO", "BS", "BL"]],
+    ["Romandie West", ["GE", "VD"]],
+    ["Romandie Nord", ["NE", "JU", "FR", "VS"]],
+  ],
+  phasen: {
+    vorauswahl: "Vorauswahl der Account Manager",
+    freigegeben: "Freigegeben – in Bearbeitung",
+    abgeschlossen: "Abgeschlossen",
+  },
+  // Vorab mit der Geschäftsleitung vereinbarte Entscheidungsregel
+  entscheidRegel: {
+    vorsprung: 0.05,
+    text: "Der Pilot gilt als erfolgreich, wenn die Gewinnquote «nur Liste» nach vier Quartalen mindestens 5 Prozentpunkte über «nur AM» liegt.",
+  },
+
+  // So läuft das Pilotjahr (Cockpit)
+  pilotSchritte: [
+    "<b>Ein Jahr, vier Quartale:</b> Q1 bis Q4 2027, je 80 Offerten – rund 320 Offerten. Das reicht, damit Zufallsschwankungen (etwa ±5 Aufträge pro Quartal) den Vergleich nicht verdecken, und auch spät entscheidende Gemeinden fliessen ein.",
+    "<b>Vorauswahl:</b> Zu Beginn jedes Quartals markiert jeder Account Manager in seiner Region, welche Opportunitäten er offerieren würde. Die Liste mit den Gewinnchancen bleibt für ihn gesperrt, bis er abgegeben hat.",
+    "<b>Freigabe:</b> Die Vertriebsleitung gibt die 80 Offerten frei. Danach ist die Liste fix; Änderungen nur mit Begründung, alles wird im Verlauf protokolliert.",
+    "<b>Pilotmodus:</b> 10 Entdeckungsplätze für Neukunden bleiben reserviert. Fälle, die Liste und AM beide wählen, werden offeriert; die übrigen Plätze teilen sich je zur Hälfte «nur Liste» und «nur AM».",
+    "Jede Offerte hat einen Status: <b>Geplant → In Bearbeitung → Offeriert → Gewonnen oder Verloren</b>. Das Offert-Team pflegt ihn laufend; das Cockpit zeigt den Stand für Team und Geschäftsleitung.",
+    "Nach zwei Quartalen Zwischenbilanz, nach vier Quartalen Entscheid über den Betrieb – an der vorab vereinbarten Zahl: Gewinnquote «nur Liste» gegen «nur AM».",
+  ],
+
   // Was wir von der Geschäftsleitung brauchen (Antrag)
   antrag: [
-    "Freigabe für einen Pilot über zwei Quartale, Start Q1 2027 – mitten in der E-ID-Welle.",
+    "Freigabe für einen Pilot über ein Jahr: Q1 bis Q4 2027, je 80 Offerten pro Quartal – Start mitten in der E-ID-Welle.",
     "Zugang zu den CRM-Daten der Opportunitäten und Ergebnissen, ohne Personendaten.",
     "Zeit der Account Manager: Vorauswahl vor dem Blick auf die Liste und Ergebnisse eintragen.",
-    "Vorab vereinbart: Entscheidungszahl nach zwei Quartalen – Gewinnquote der Streitfälle «nach Liste» gegen «nach AM».",
+    "Vorab vereinbart: Entscheidungszahl nach dem Pilotjahr – Gewinnquote der Streitfälle «nach Liste» gegen «nach AM»; nach zwei Quartalen eine Zwischenbilanz im Cockpit.",
   ],
 };

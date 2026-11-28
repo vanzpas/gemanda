@@ -269,3 +269,60 @@ dialog .knoepfe{justify-content:flex-end}
   .tab{display:block!important}body{background:#fff}
   .kpi.haupt{background:#fff;color:var(--text)}.kpi.haupt b,.kpi.haupt span{color:var(--text)}
 }
+
+/* Unser Satz aus Block 3 – sichtbar über der Offertliste */
+.unser-satz{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;margin:10px 0 0;font-size:14.5px;color:var(--text)}
+.unser-satz span:first-child{flex:none;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--gold);background:var(--gold-h);border:1px solid var(--gold-rand);border-radius:999px;padding:2px 9px}
+.karte table.t{margin-top:6px}
+.karte table.t th{position:static}
+
+/* Quartalsauswahl, Fortschritt, Status */
+.quartal-zeile{display:flex;align-items:center;gap:8px 16px;flex-wrap:wrap}
+.quartal-zeile label{display:inline-flex;align-items:center;gap:8px}
+.quartal-zeile select{min-height:36px;padding:4px 8px;font-weight:600}
+.fortschritt{margin:-6px 0 16px;padding:14px 16px}
+.fs-kopf{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.stapel{display:flex;height:14px;border-radius:7px;overflow:hidden;background:var(--linie);gap:2px}
+.stapel i{display:block;min-width:4px}
+.legende{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:8px;font-size:12.5px;color:var(--grau)}
+.legende span{display:inline-flex;align-items:center;gap:6px}
+.legende i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.legende b{color:var(--text)}
+.status-wahl{border-left:5px solid #c5ced8;max-width:210px}
+.status-wahl[data-st="bearbeitung"]{border-left-color:#c9962b}
+.status-wahl[data-st="offeriert"]{border-left-color:#2a78d6}
+.status-wahl[data-st="gewonnen"]{border-left-color:#1a8a5f;font-weight:600}
+.status-wahl[data-st="verloren"]{border-left-color:#b3261e}
+#cockpit .kpis{margin-top:8px}
+@media (max-width:760px){.quartal-zeile label{width:100%}.quartal-zeile select{flex:1}.status-wahl{max-width:none;width:100%}}
+
+/* Rollen, Phasen, Vorauswahl */
+.kopf-in{position:relative}
+.rolle{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:rgba(255,255,255,.85);padding-bottom:12px;margin-left:auto}
+.rolle select{min-height:36px;border-radius:var(--r-s);border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff;padding:4px 8px;font-weight:600}
+.rolle select option,.rolle select optgroup{color:#1a2430;background:#fff}
+.phase{margin:12px 0 0;padding:12px 16px}
+.phasen{display:flex;gap:6px;list-style:none;margin:0 0 10px;padding:0;counter-reset:ph;flex-wrap:wrap}
+.phasen li{counter-increment:ph;flex:1 1 160px;font-size:13px;color:var(--grau);padding:6px 10px 6px 34px;border-radius:var(--r-s);background:var(--grau-h);border:1px solid var(--linie);position:relative}
+.phasen li::before{content:counter(ph);position:absolute;left:8px;top:50%;transform:translateY(-50%);width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:11px;font-weight:700;background:var(--flaeche);border:1px solid var(--linie-stark)}
+.phasen li.fertig{color:var(--gruen);background:var(--gruen-h);border-color:var(--gruen-rand)}
+.phasen li.fertig::before{content:"✓";color:var(--gruen);border-color:var(--gruen-rand)}
+.phasen li.jetzt{color:var(--blau);background:var(--blau-h);border-color:var(--blau);font-weight:600}
+.phasen li.jetzt::before{background:var(--blau);color:#fff;border-color:var(--blau)}
+.phase-zeile{display:flex;justify-content:space-between;align-items:center;gap:10px 16px;flex-wrap:wrap;font-size:14px}
+body.gesperrt .regler,body.gesperrt #tab-liste>.filter{display:none}
+.status-text{display:inline-block;font-size:13px;padding:3px 9px;border-left:4px solid #c5ced8;background:var(--grau-h);border-radius:4px}
+.status-text[data-st="bearbeitung"]{border-left-color:#c9962b}.status-text[data-st="offeriert"]{border-left-color:#2a78d6}
+.status-text[data-st="gewonnen"]{border-left-color:#1a8a5f;font-weight:600}.status-text[data-st="verloren"]{border-left-color:#b3261e}
+.knopf:disabled,.feld:disabled,input:disabled{opacity:.55;cursor:not-allowed}
+.ampel{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:700;padding:3px 10px;border-radius:999px;background:rgba(255,255,255,.16)}
+.ampel i{width:10px;height:10px;border-radius:50%}
+.verlauf li{font-size:13px;padding:6px 0;border-bottom:1px solid var(--linie);list-style:none}
+.verlauf{margin:0;padding:0;max-height:360px;overflow:auto}
+.verlauf b{color:var(--text)}
+@media (max-width:760px){.rolle{width:100%;padding-bottom:6px;order:3}.rolle select{flex:1}}
+@media print{body.druck-cockpit .kopf,body.druck-cockpit .hinweis-band,body.druck-cockpit #cockpit .filter,body.druck-cockpit #cockpit select,body.druck-cockpit .knoepfe{display:none!important}
+  body.druck-cockpit .tab{display:none!important}body.druck-cockpit #tab-pilotjahr{display:block!important}}
+.regel{margin:12px 0 4px;padding:10px 12px;border-left:4px solid #8a96a3;background:var(--grau-h);border-radius:0 var(--r-s) var(--r-s) 0;font-size:13.5px}
+#cockpit>.phase-zeile{margin-bottom:4px}
+.kpi.haupt .ampel{align-self:flex-start;margin-bottom:4px;color:#fff}

@@ -112,8 +112,8 @@ nutzen = pd.DataFrame(nutzen)
 pruefe("Mehrumsatz pro Jahr gegenüber Zufall", "CHF 1,7–2,2 Mio.",
        f"CHF {nutzen['pro_jahr'].min() / 1000:.1f}–{nutzen['pro_jahr'].max() / 1000:.1f} Mio.",
        round(nutzen["pro_jahr"].min() / 1000, 1) == 1.7 and round(nutzen["pro_jahr"].max() / 1000, 1) == 2.2)
-pruefe("Spanne über 6 Aufteilungen", "32–37", f"{min(alle):.0f}–{max(alle):.0f}",
-       round(min(alle)) == 32 and round(max(alle)) == 37)
+pruefe("Spanne über 6 Aufteilungen", "34–37 (Ergebnis Gruppe; Musterlösung 32–37)", f"{min(alle):.0f}–{max(alle):.0f}",
+       round(min(alle)) == 34 and round(max(alle)) == 37)
 
 # Idee 1: 70 + 10 Entdeckungsplätze (auf 225 hochgerechnet: 197 + 28)
 # Entdeckung = die Neukunden mit der höchsten Chance unterhalb der 70 Listenplätze.
@@ -144,7 +144,15 @@ for t in "ABCD":
     n_test = (test["gemeindetyp"] == t).sum()
     n_top = (test.head(225)["gemeindetyp"] == t).sum()
     zus.append({"typ": t, "test": int(n_test), "ja_anteil": round(test[test["gemeindetyp"] == t]["y"].mean(), 3),
-                "auf_liste": int(n_top), "anteil_auf_liste": round(n_top / n_test, 3)})
+                "auf_liste": int(n_top), "anteil_auf_liste": round(n_top / n_test, 3),
+                "anteil_an_liste": round(n_top / 225, 3),
+                "anteil_offerten": round((o["gemeindetyp"] == t).mean(), 3),
+                "anteil_gemeinden": round((g["typ"] == t).mean(), 3)})
+
+# Die obersten 10 der Prüfung (Ergebnisseite Block 3, Abschnitt 3)
+top10 = [{"id": r.offerte_id, "gemeinde": r.gemeindename, "typ": r.gemeindetyp, "chance": round(float(r.chance), 4),
+          "bestandskunde": r.bestandskunde, "quelle": r.quelle, "produkt": r.produktlinie}
+         for r in test.head(10).itertuples()]
 
 # Gewinnkurve (Rückblick)
 kurve = [round(test["y"].iloc[:k].sum() / test["y"].sum(), 3) for k in range(0, 901, 45)]
@@ -204,7 +212,7 @@ modell = {
         "auftraege_liste": round(q_liste, 1), "auftraege_zufall": round(q_zufall, 1),
         "spanne": [round(min(alle), 1), round(max(alle), 1)],
         "treffer_top225": int(treffer), "test_n": 900,
-        "lernkosten": lernkosten, "zusammensetzung": zus, "gewinnkurve": kurve,
+        "lernkosten": lernkosten, "zusammensetzung": zus, "gewinnkurve": kurve, "top10": top10,
         "nutzen": {
             "plus_auftraege_q": [round(nutzen["plus_q"].min(), 1), round(nutzen["plus_q"].max(), 1)],
             "wert_zusatzauftrag": round(float(nutzen.loc[0, "extra_wert"])),
@@ -224,6 +232,23 @@ demo = test.sample(320, random_state=2027).sort_values("offerte_id")
 SP_DEMO = ["offerte_id", "bfs_nr", "gemeindename", "kanton", "sprachregion", "gemeindetyp", "einwohner",
            "produktlinie", "quelle", "verfahren", "bestandskunde", "kontakte_12m"]
 demo[SP_DEMO].to_csv(AUS / "demo_quartal_2027Q1.csv", index=False, encoding="utf-8")
+
+# Demo-Pilotjahr 2027: vier Quartale à 320 Opportunitäten mit dem echten Ausgang («_ergebnis»).
+# Nur für die Vorführung des Cockpits. Q1 = Demo-Quartal oben; Q2–Q4 aus den übrigen Offerten.
+rest_pool = o[~o["offerte_id"].isin(demo["offerte_id"])]
+quartale = [("Q1/2027", demo)]
+for i, name in enumerate(["Q2/2027", "Q3/2027", "Q4/2027"]):
+    q = rest_pool.sample(320, random_state=100 + i).sort_values("offerte_id")
+    rest_pool = rest_pool.drop(q.index)
+    quartale.append((name, q))
+pilotjahr = {
+    "stand": "30.09.2027",
+    "hinweis": "Demo: bisherige Offerten als Opportunitäten, Ausgang aus den echten Ergebnissen, Bearbeitungsstand simuliert.",
+    "quartale": [{"name": n, "rows": [{**{k: (int(v) if isinstance(v, (np.integer,)) else v) for k, v in r[SP_DEMO].items()},
+                                       "_ergebnis": r["auftrag_gewonnen"]} for _, r in q.iterrows()]}
+                 for n, q in quartale],
+}
+(AUS / "demo_pilotjahr_2027.json").write_text(json.dumps(pilotjahr, ensure_ascii=False), encoding="utf-8")
 
 # Gemeinden: Typ, Kundenstatus, Produkte
 gew = o[o["y"] == 1].groupby("bfs_nr")["produktlinie"].apply(lambda s: sorted(set(s))).to_dict()

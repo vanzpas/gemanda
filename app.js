@@ -14,7 +14,60 @@ const info = (text, label) => `<span class="info" tabindex="0" role="button" ari
 
 let M, GEM, GEM_BFS;            // Modell, Gemeinden
 let quartal = { name: "", quelle: "", rows: [] };
-let zustand = { over: {}, am: {}, erg: {} };   // Entscheide der Account Manager, Pilot
+let zustand = leerZustand();     // pro Quartal: Entscheide der Account Manager, Status, Pilot-Einstellungen
+function leerZustand() { return { over: {}, am: {}, erg: {}, kap: 80, entd: 10, pilot: false, phase: "vorauswahl", abgabe: {}, log: [] }; }
+
+// Status einer Offerte auf der Liste (gespeichert in zustand.erg)
+const STATUS = [
+  ["", "Geplant"], ["bearbeitung", "In Bearbeitung"], ["offeriert", "Offeriert – Entscheid offen"],
+  ["gewonnen", "Gewonnen"], ["verloren", "Verloren"],
+];
+const STATUS_NAME = Object.fromEntries(STATUS);
+const STATUS_FARBE = { "": "#c5ced8", bearbeitung: "#c9962b", offeriert: "#2a78d6", gewonnen: "#1a8a5f", verloren: "#b3261e" };
+const normStatus = (s) => (s === "offen" ? "offeriert" : s || "");
+
+// Speicher: Quartale bleiben im Browser erhalten. Ohne Speicher (privates Fenster) läuft alles im Arbeitsspeicher.
+const ERSATZ = new Map();
+const lies = (k) => { try { const v = localStorage.getItem(k); if (v !== null) return JSON.parse(v); } catch (e) { /* egal */ } return ERSATZ.has(k) ? JSON.parse(ERSATZ.get(k)) : null; };
+const schreib = (k, v) => { const s = JSON.stringify(v); ERSATZ.set(k, s); try { localStorage.setItem(k, s); } catch (e) { /* nur im Arbeitsspeicher */ } };
+const register = () => lies("radar:quartale") || [];
+function zustandVon(name) {
+  const gespeichert = lies("radar:" + name) || {};
+  const z = { ...leerZustand(), ...gespeichert };
+  for (const k in z.erg) z.erg[k] = normStatus(z.erg[k]);
+  // ältere Stände ohne Phase: mit eingetragenem Status gelten sie als freigegeben
+  if (!gespeichert.phase && Object.keys(z.erg).length) z.phase = "freigegeben";
+  return z;
+}
+
+// ------------------------------------------------------------ Rollen (Stufe A: simuliert, ohne Login)
+let rolle = lies("radar:rolle") || { typ: "vl", am: "" };
+const REGION_VON = Object.fromEntries(I.regionen.flatMap(([n, k]) => k.map((x) => [x, n])));
+const zustaendig = (r) => (r.einwohner > I.keyAccountAb ? "Key Account" : REGION_VON[r.kanton] || "Key Account");
+const rolleText = () => rolle.typ === "am" ? `AM ${rolle.am}` : I.rollen[rolle.typ];
+const istMeins = (r) => rolle.typ !== "am" || zustaendig(r) === rolle.am;
+// Wer darf was? (im Betrieb übernimmt das das Login mit Rechten – Stufe B)
+function darf(aktion, r, z = zustand) {
+  const t = rolle.typ, ph = z.phase;
+  switch (aktion) {
+    case "einstellen": return t === "vl" && ph === "vorauswahl";
+    case "freigeben": return t === "vl" && ph === "vorauswahl";
+    case "abschliessen": return t === "vl" && ph === "freigegeben";
+    case "hochladen": return t === "vl";
+    case "vorauswahl": return t === "am" && ph === "vorauswahl" && !z.abgabe[rolle.am] && (!r || istMeins(r));
+    case "reinraus": return ph !== "abgeschlossen" && (t === "vl" || (t === "am" && ph === "vorauswahl" && (!r || istMeins(r))));
+    case "status": return ph === "freigegeben" && (t === "ot" || t === "vl" || (t === "am" && (!r || istMeins(r))));
+    default: return false;
+  }
+}
+// Verlauf: wer hat wann was geändert (Audit-Trail)
+function protokolliere(z, was, text = "", id = "") {
+  z.log = z.log || [];
+  z.log.push({ t: new Date().toISOString(), n: Date.now(), wer: rolleText(), was, text, id });
+  if (z.log.length > 2000) z.log.splice(0, z.log.length - 2000);
+}
+// AM sieht die Liste erst nach seiner Vorauswahl
+const listeGesperrt = () => rolle.typ === "am" && zustand.phase === "vorauswahl" && !zustand.abgabe[rolle.am];
 const PFLICHT = ["gemeindename", "einwohner", "produktlinie", "quelle", "verfahren", "bestandskunde", "kontakte_12m", "sprachregion"];
 const WERTE = {
   gemeindetyp: ["A", "B", "C", "D"],
@@ -28,6 +81,8 @@ const WERTE = {
 // ------------------------------------------------------------ Laden
 async function start() {
   $("#datenhinweis").textContent = I.datenhinweis;
+  $("#tool-satz").textContent = I.gruppe.toolSatz;
+  $("#tool-satz-2").textContent = I.gruppe.toolSatz;
   $("#fuss").textContent = "GovTech-Marktradar · MVP · Leistungsnachweis 2, CAS AI in Product Management HS 26 · " + I.datenhinweis;
   try {
     const [m, g, demo] = await Promise.all([
@@ -36,12 +91,14 @@ async function start() {
       fetch("daten/demo_quartal_2027Q1.csv").then((r) => r.text()),
     ]);
     M = m; GEM = g; GEM_BFS = new Map(g.map((x) => [x.bfs, x]));
-    ladeQuartal(demo, "Demo-Quartal Q1/2027", "320 Beispiel-Opportunitäten aus bisherigen Offerten, ohne Ergebnis");
+    const reg = register();
+    if (!reg.length) ladeQuartal(demo, "Q1/2027", "Demo: 320 Beispiel-Opportunitäten aus bisherigen Offerten");
+    else zeigeQuartal(lies("radar:aktiv") && reg.some((q) => q.name === lies("radar:aktiv")) ? lies("radar:aktiv") : reg[0].name);
   } catch (e) {
     meldung("fehler", "Die Daten konnten nicht geladen werden. Die Seite muss über einen Webserver geöffnet werden (z. B. GitHub Pages).");
     return;
   }
-  baueGemeinden(); baueRueckblick(); baueHerleitung();
+  baueGemeinden(); baueRueckblick(); baueHerleitung(); zeigeCockpit();
 }
 
 function parseCSV(text) {
@@ -90,29 +147,49 @@ function ladeQuartal(text, name, quelle) {
       probleme.push(`Zeile ${i + 2} (${r.gemeindename || "?"}): ${falsch.length ? "unbekannter Wert in " + falsch.join(", ") : "Zahl fehlt"}`);
       return;
     }
-    rows.push(rechne({ ...r, id: r.offerte_id || r.id || "Z" + String(i + 1).padStart(4, "0"), einwohner: ew, kontakte_12m: ko }));
+    rows.push({ ...r, id: r.offerte_id || r.id || "Z" + String(i + 1).padStart(4, "0"), einwohner: ew, kontakte_12m: ko });
   });
-  if (probleme.length) meldung("warn", `${probleme.length} Zeile(n) übersprungen: ` + probleme.slice(0, 5).map(esc).join(" · ") + (probleme.length > 5 ? " …" : ""));
-  quartal = { name, quelle, rows };
-  try { zustand = JSON.parse(localStorage.getItem("radar:" + name)) || { over: {}, am: {}, erg: {} }; }
-  catch (e) { zustand = { over: {}, am: {}, erg: {} }; }
-  // Lernkreislauf: Eine exportierte Liste mit eingetragenen Ergebnissen kann wieder geladen werden.
+  if (!rows.length) { meldung("fehler", "Keine gültige Zeile gefunden."); return; }
+  // Das Quartal merken: Rohdaten (ohne Personendaten) und Bearbeitungsstand bleiben im Browser
+  const SP = ["id", "bfs_nr", "gemeindename", "kanton", "sprachregion", "gemeindetyp", "einwohner", "produktlinie", "quelle", "verfahren", "bestandskunde", "kontakte_12m"];
+  schreib("radar:rows:" + name, rows.map((r) => Object.fromEntries(SP.map((s) => [s, r[s] ?? ""]))));
+  const reg = register().filter((q) => q.name !== name);
+  reg.push({ name, quelle }); reg.sort((a, b) => sortQ(a.name) - sortQ(b.name) || a.name.localeCompare(b.name));
+  schreib("radar:quartale", reg);
+  // Lernkreislauf: Eine exportierte Liste mit eingetragenem Stand kann wieder geladen werden.
+  const z = zustandVon(name);
   let zurueck = 0;
   rows.forEach((r) => {
-    if (["rein", "raus"].includes(r.am_entscheid)) { zustand.over[r.id] = r.am_entscheid; if (r.am_grund) zustand.over[r.id + ":grund"] = r.am_grund; }
-    if (r.am_haette_gewaehlt === "ja") zustand.am[r.id] = 1;
-    if (["gewonnen", "verloren", "offen"].includes(r.ergebnis)) { zustand.erg[r.id] = r.ergebnis; zurueck++; }
+    if (["rein", "raus"].includes(r.am_entscheid)) { z.over[r.id] = r.am_entscheid; if (r.am_grund) z.over[r.id + ":grund"] = r.am_grund; }
+    if (r.am_haette_gewaehlt === "ja") z.am[r.id] = 1;
+    const st = normStatus(r.status || r.ergebnis);
+    if (st && STATUS_NAME[st]) { z.erg[r.id] = st; zurueck++; }
   });
-  if (zurueck) { meldung("ok", `${zurueck} eingetragene Ergebnisse übernommen – sie fliessen in die Pilot-Auswertung.`); speichere(); }
+  schreib("radar:" + name, z);
+  zeigeQuartal(name);
+  if (probleme.length) meldung("warn", `${probleme.length} Zeile(n) übersprungen: ` + probleme.slice(0, 5).map(esc).join(" · ") + (probleme.length > 5 ? " …" : ""));
+  if (zurueck) meldung("ok", `Bearbeitungsstand von ${zurueck} Offerten übernommen – er fliesst ins Cockpit und in die Pilot-Auswertung.`);
+}
+// «Q3/2027» → 20273, damit Quartale zeitlich sortiert werden
+function sortQ(n) { const m = /Q([1-4])\D*(\d{4})/i.exec(n); return m ? +m[2] * 10 + +m[1] : 99999; }
+
+// Ein gemerktes Quartal öffnen
+function zeigeQuartal(name) {
+  const roh = lies("radar:rows:" + name) || [];
+  const eintrag = register().find((q) => q.name === name) || { quelle: "" };
+  quartal = { name, quelle: eintrag.quelle, rows: roh.map(rechne) };
+  zustand = zustandVon(name);
+  schreib("radar:aktiv", name);
+  $("#meldungen").innerHTML = "";
+  $("#kap").value = zustand.kap; $("#entd").value = zustand.entd; $("#pilotmodus").checked = !!zustand.pilot;
   $("#quartal-titel").textContent = "Offertliste · " + name;
-  $("#quartal-quelle").textContent = `${rows.length} Opportunitäten · ${quelle}`;
-  pruefeMix(rows);
+  $("#quartal-quelle").textContent = `${roh.length} Opportunitäten · ${eintrag.quelle}`;
+  $("#quartal-wahl").innerHTML = register().map((q) => `<option ${q.name === name ? "selected" : ""}>${esc(q.name)}</option>`).join("");
+  pruefeMix(quartal.rows);
   zeigeListe();
 }
 
-function speichere() {
-  try { localStorage.setItem("radar:" + quartal.name, JSON.stringify(zustand)); } catch (e) { /* ohne Speicher weiter */ }
-}
+function speichere() { schreib("radar:" + quartal.name, zustand); }
 
 // ------------------------------------------------------------ Modelle anwenden
 function rechne(r) {
@@ -136,6 +213,11 @@ function rechne(r) {
     stadt: r.einwohner > 50000 };
 }
 
+// «etwa jede zweite» / «etwa jede 23.» – so wie in unseren Wenn-dann-Sätzen
+const jedeN = (anteil) => anteil >= 0.45 ? "etwa jede zweite" : `etwa jede ${Math.round(1 / anteil)}.`;
+// Begründung wie auf unserer Ergebnisseite: «Bestandskunde, Anfrage der Gemeinde, Typ C, Fiskal.»
+const kurzGrund = (r) => `${r.bestandskunde === "ja" ? "Bestandskunde" : "Neukunde"}, ${r.quelle}, Typ ${r.typ || r.gemeindetyp}, ${r.produkt || r.produktlinie}.`;
+
 function grund(r) {
   const anfrage = r.quelle === "Anfrage der Gemeinde";
   const k = M.kombi[`${r.bestandskunde}|${anfrage ? "anfrage" : "andere"}`];
@@ -143,7 +225,7 @@ function grund(r) {
     "ja|true": "Bestandskunde fragt selbst an", "ja|false": "Bestandskunde",
     "nein|true": "Neukunde, aber eigene Anfrage", "nein|false": "Neukunde ohne eigene Anfrage",
   }[`${r.bestandskunde}|${anfrage}`];
-  const teile = [`${t}: ${pct(k.ja)} solcher Fälle gewonnen`];
+  const teile = [`${t}: ${jedeN(k.ja)} gewonnen (${pct(k.ja)})`];
   if (r.gemeindetyp === "C") teile.push(`Typ C gewinnt ${pct(M.anteile.gemeindetyp.C.ja)}`);
   if (r.quelle === "simap-Ausschreibung") teile.push(`simap nur ${pct(M.anteile.quelle["simap-Ausschreibung"].ja)}`);
   return teile.join(" · ");
@@ -166,10 +248,18 @@ function weg(r) {
 }
 
 // ------------------------------------------------------------ Auswahl
+// Aktuelles Quartal mit den Einstellungen aus der Steuerleiste
 function auswahl() {
-  const kap = Math.max(1, +$("#kap").value || 80);
-  const entd = Math.min(kap, Math.max(0, +$("#entd").value || 0));
-  const sortiert = [...quartal.rows].sort((a, b) => b.chance - a.chance || a.id.localeCompare(b.id));
+  zustand.kap = Math.max(1, +$("#kap").value || 80);
+  zustand.entd = Math.min(zustand.kap, Math.max(0, +$("#entd").value || 0));
+  zustand.pilot = $("#pilotmodus").checked;
+  return auswahlFuer(quartal.rows, zustand);
+}
+// Dieselbe Auswahl für ein beliebiges Quartal (fürs Cockpit). Logik unverändert.
+function auswahlFuer(rows, zustand) {
+  const kap = Math.max(1, +zustand.kap || 80);
+  const entd = Math.min(kap, Math.max(0, +zustand.entd || 0));
+  const sortiert = [...rows].sort((a, b) => b.chance - a.chance || a.id.localeCompare(b.id));
   sortiert.forEach((r, i) => { r.rang = i + 1; r.status = "unter"; });
   const frei = sortiert.filter((r) => !r.stadt && zustand.over[r.id] !== "raus");
   sortiert.forEach((r) => { if (r.stadt) r.status = "stadt"; else if (zustand.over[r.id] === "raus") r.status = "raus"; });
@@ -181,14 +271,17 @@ function auswahl() {
 
   // Pilotmodus: Damit «Liste gegen AM» messbar wird, müssen beide Seiten offeriert werden.
   // Fälle, die beide wählen, kommen zuerst; die übrigen Plätze teilen sich Liste und AM je zur Hälfte.
-  if ($("#pilotmodus").checked && Object.keys(zustand.am).length) {
-    const liste = sortiert.filter((r) => DRIN.has(r.status)), ids = new Set(liste.map((r) => r.id));
+  // Die Entdeckungsplätze bleiben reserviert und laufen ausserhalb des Vergleichs Liste gegen AM.
+  if (zustand.pilot && Object.keys(zustand.am).length) {
+    const alleDrin = sortiert.filter((r) => DRIN.has(r.status)), ids = new Set(alleDrin.map((r) => r.id));
+    const entdeckung = alleDrin.filter((r) => r.status === "entd");
+    const liste = alleDrin.filter((r) => r.status !== "entd");
     const beide = liste.filter((r) => zustand.am[r.id]);
     const nurL = liste.filter((r) => !zustand.am[r.id]);
     const nurA = frei.filter((r) => zustand.am[r.id] && !ids.has(r.id));
     liste.forEach((r) => { r.status = "unter"; });
     beide.forEach((r) => { r.status = "beide"; });
-    const rest = Math.max(0, kap - beide.length);
+    const rest = Math.max(0, kap - entdeckung.length - beide.length);
     let nl = Math.ceil(rest / 2), na = rest - nl;
     if (nurA.length < na) { nl += na - nurA.length; na = nurA.length; }
     if (nurL.length < nl) { na = Math.min(nurA.length, na + nl - nurL.length); nl = nurL.length; }
@@ -205,6 +298,12 @@ const PLATZ = {
 
 // ------------------------------------------------------------ Offertliste zeigen
 function zeigeListe() {
+  zeigePhase();
+  // Steuerung nach Rolle und Phase
+  for (const id of ["#kap", "#entd", "#pilotmodus"]) $(id).disabled = !darf("einstellen");
+  $("#hochladen").disabled = !darf("hochladen");
+  document.body.classList.toggle("gesperrt", listeGesperrt());
+  if (listeGesperrt()) { zeigeVorauswahl(); return; }
   const { sortiert, kap, frei } = auswahl();
   const drin = sortiert.filter((r) => DRIN.has(r.status));
   const naechste = frei.filter((r) => r.status === "unter");
@@ -225,19 +324,28 @@ function zeigeListe() {
     <div class="kpi gold"><b>+ ${zahl(plus10, 1)} Aufträge</b><span>brächten 10 Offerten mehr (≈ ${chf(plus10w)} erwarteter Wert) – Grundlage für die Frage nach mehr Kapazität ${info("Summe der Gewinnchancen der nächsten 10 Opportunitäten unter dem Schnitt. So sieht man, was eine grössere Kapazität im Offert-Team bringen würde.", "Erklärung Kapazität")}</span></div>
     <div class="kpi"><b>${amRein} / ${amRaus}</b><span>Fälle von Account Managern hinzugefügt / herausgenommen – zeigt, wo Erfahrung und Liste auseinandergehen</span></div>`;
 
+  // Fortschritt des Quartals: wo stehen die Offerten auf der Liste?
+  const zaehl = Object.fromEntries(STATUS.map(([k]) => [k, drin.filter((r) => normStatus(zustand.erg[r.id]) === k).length]));
+  $("#fortschritt").innerHTML = `<div class="fs-kopf"><b>Stand ${esc(quartal.name)}</b>
+      <span class="klein">${zaehl.gewonnen + zaehl.verloren} von ${drin.length} entschieden · ${zaehl.gewonnen} gewonnen${zaehl.gewonnen + zaehl.verloren ? ` (${pct(zaehl.gewonnen / (zaehl.gewonnen + zaehl.verloren))} der entschiedenen)` : ""}</span></div>
+    ${stapel(zaehl, drin.length)}`;
+
   const ansicht = $("#ansicht .an").dataset.v, typ = $("#f-typ").value, q = $("#suche").value.trim().toLowerCase();
+  const fst = $("#f-status").value, fz = $("#f-zust").value;
   const pilot = $("#pilot-spalten").checked;
   const passt = (r) => (!typ || r.gemeindetyp === typ) && (!q || r.gemeindename.toLowerCase().includes(q)) &&
-    (ansicht === "alle" || (ansicht === "liste" ? DRIN.has(r.status) : !DRIN.has(r.status)));
+    (!fz || zustaendig(r) === (fz === "meine" ? rolle.am : fz)) &&
+    (ansicht === "alle" || (ansicht === "liste" ? DRIN.has(r.status) : !DRIN.has(r.status))) &&
+    (!fst || (DRIN.has(r.status) && (normStatus(zustand.erg[r.id]) || "geplant") === fst));
   const oben = drin.filter(passt), unten = sortiert.filter((r) => !DRIN.has(r.status)).filter(passt);
 
   const kopf = `<thead><tr><th scope="col">Prio.</th><th scope="col">Gemeinde</th><th scope="col">Typ</th><th scope="col">Produkt · Quelle</th><th scope="col" class="n">Gewinnchance</th>
     <th scope="col" class="n">Offertwert<span class="th-sub">CHF 1'000 · Bandbreite</span></th><th scope="col" class="n">Erw. Wert<span class="th-sub">CHF 1'000</span></th><th scope="col">Warum?</th><th scope="col">Platz / Weg<span class="th-sub">Entscheid Account Manager</span></th>
-    ${pilot ? '<th scope="col">AM hätte gewählt</th><th scope="col">Ergebnis</th>' : ""}</tr></thead>`;
+    <th scope="col">Zuständig</th><th scope="col">Status</th>${pilot ? '<th scope="col">AM hätte gewählt</th>' : ""}</tr></thead>`;
   const zeile = (r) => {
     const platz = PLATZ[r.status] ? `<span class="marke ${PLATZ[r.status][0]}">${PLATZ[r.status][1]}</span>` : `<span class="weg">${esc(weg(r))}</span>`;
     const ov = zustand.over[r.id], name = esc(r.gemeindename);
-    const knopf = r.stadt ? '<span class="klein">–</span>' : DRIN.has(r.status)
+    const knopf = r.stadt || !darf("reinraus", r) ? "" : DRIN.has(r.status)
       ? `<button class="mini" type="button" data-act="raus" data-id="${esc(r.id)}" aria-label="${name} herausnehmen">herausnehmen</button>`
       : ov === "raus" ? `<button class="mini" type="button" data-act="zurueck" data-id="${esc(r.id)}" aria-label="${name} zurücknehmen">zurücknehmen</button>`
       : `<button class="mini" type="button" data-act="rein" data-id="${esc(r.id)}" aria-label="${name} hinzufügen">hinzufügen</button>`;
@@ -252,15 +360,69 @@ function zeigeListe() {
       <td class="n" data-label="Erw. Wert (CHF 1'000)">${zahl(r.erwartet)}</td>
       <td class="begr voll" data-label="Warum?">${esc(grund(r))}${hinweise(r).map((h) => `<span class="warnzeile">⚠ ${esc(h)}</span>`).join("")}</td>
       <td data-label="Platz / Weg" class="platz">${platz}<div class="am-knopf">${knopf}</div>${grundAm}</td>
-      ${pilot ? `<td data-label="AM hätte gewählt"><label class="check"><input type="checkbox" data-am="${esc(r.id)}" ${zustand.am[r.id] ? "checked" : ""}> <span class="klein">gewählt</span></label></td>
-        <td data-label="Ergebnis"><select class="mini" data-erg="${esc(r.id)}" aria-label="Ergebnis ${name}"><option value="">–</option>${["gewonnen", "verloren", "offen"].map((v) => `<option ${zustand.erg[r.id] === v ? "selected" : ""}>${v}</option>`).join("")}</select></td>` : ""}
+      <td data-label="Zuständig"><span class="klein">${esc(zustaendig(r))}</span></td>
+      <td data-label="Status">${!DRIN.has(r.status) ? '<span class="klein">–</span>' : darf("status", r) ? statusWahl(r.id, name) : statusText(normStatus(zustand.erg[r.id]))}</td>
+      ${pilot ? `<td data-label="AM hätte gewählt">${zustand.am[r.id] ? '<span class="marke am">gewählt</span>' : '<span class="klein">–</span>'}</td>` : ""}
     </tr>`;
   };
-  const sp = pilot ? 11 : 9;
+  const sp = pilot ? 12 : 11;
   const schnitt = `<tr class="schnitt"><td colspan="${sp}"><div>Schnitt bei ${kap} Offerten – darunter bekommt jeder Fall einen Weg, keiner fällt durch</div></td></tr>`;
   const leer = !oben.length && !unten.length
     ? `<tr class="leer"><td colspan="${sp}">Keine Opportunität passt zu diesen Filtern. <button class="mini" type="button" id="filter-zurueck">Filter zurücksetzen</button></td></tr>` : "";
   $("#liste").innerHTML = kopf + "<tbody>" + oben.map(zeile).join("") + (ansicht === "alle" && oben.length && unten.length ? schnitt : "") + unten.map(zeile).join("") + leer + "</tbody>";
+}
+
+// Status als Text, wenn die Rolle ihn nicht ändern darf
+const statusText = (st) => `<span class="status-text" data-st="${st || "geplant"}">${STATUS_NAME[st || ""]}</span>`;
+
+// Phase des Quartals mit den Aktionen der Vertriebsleitung
+function zeigePhase() {
+  const z = zustand, abg = Object.keys(z.abgabe || {}).length, n = I.regionen.length;
+  const schritte = ["vorauswahl", "freigegeben", "abgeschlossen"];
+  const i = schritte.indexOf(z.phase);
+  let text = "", knoepfe = "";
+  if (z.phase === "vorauswahl") {
+    text = `${abg} von ${n} Account Managern haben ihre Vorauswahl abgegeben.`;
+    if (rolle.typ === "am") text = z.abgabe[rolle.am] ? `Eure Vorauswahl (${esc(rolle.am)}) ist abgegeben am ${datum(z.abgabe[rolle.am])}. ${text}` : `Wählt zuerst eure Fälle – die Liste ist bis dahin gesperrt.`;
+    if (darf("freigeben")) knoepfe = `<button class="knopf" type="button" id="freigeben">Liste freigeben</button>`;
+  } else if (z.phase === "freigegeben") {
+    const f = (z.log || []).find((l) => l.was === "Freigabe");
+    text = `Freigegeben${f ? ` am ${datum(f.t)} von ${esc(f.wer)}` : ""}. Die Liste ist fix; Änderungen nur mit Begründung.`;
+    if (darf("abschliessen")) knoepfe = `<button class="knopf sek" type="button" id="abschliessen">Quartal abschliessen</button>`;
+  } else text = "Abgeschlossen. Das Quartal ist nur noch lesbar.";
+  $("#phase").innerHTML = `<ol class="phasen">${schritte.map((p, k) => `<li class="${k < i ? "fertig" : k === i ? "jetzt" : ""}">${esc(I.phasen[p])}</li>`).join("")}</ol>
+    <div class="phase-zeile"><span>${text}</span>${knoepfe}</div>`;
+}
+const datum = (iso) => new Date(iso).toLocaleDateString("de-CH");
+
+// Vorauswahl der Account Manager – ohne Gewinnchance, Priorität und Begründung
+function zeigeVorauswahl() {
+  const meine = quartal.rows.filter((r) => istMeins(r) && !r.stadt).sort((a, b) => a.gemeindename.localeCompare(b.gemeindename, "de"));
+  const gewaehlt = meine.filter((r) => zustand.am[r.id]).length;
+  $("#kpis").innerHTML = `<div class="kpi haupt" style="grid-column:1/-1"><b>Vorauswahl ${esc(quartal.name)} · ${esc(rolle.am)}</b>
+    <span>${meine.length} Opportunitäten in eurer Region. Markiert die Fälle, die ihr nach eurer Erfahrung offerieren würdet. Erst nach der Abgabe seht ihr die Liste mit den Gewinnchancen – so bleibt der Vergleich «Liste gegen Erfahrung» fair.</span></div>`;
+  $("#fortschritt").innerHTML = `<div class="phase-zeile"><span><b>${gewaehlt}</b> von ${meine.length} gewählt</span>
+    <button class="knopf" type="button" id="abgeben" ${gewaehlt ? "" : "disabled"}>Vorauswahl abgeben</button></div>`;
+  $("#liste").innerHTML = `<thead><tr><th scope="col">Würde ich offerieren</th><th scope="col">Gemeinde</th><th scope="col">Typ</th><th scope="col">Produkt · Quelle</th><th scope="col">Kunde</th><th scope="col" class="n">Kontakte 12 Mt.</th></tr></thead><tbody>` +
+    (meine.length ? meine.map((r) => `<tr><td data-label="Würde ich offerieren"><label class="check"><input type="checkbox" data-vorauswahl="${esc(r.id)}" ${zustand.am[r.id] ? "checked" : ""}> <span class="klein">offerieren</span></label></td>
+      <td class="voll"><b class="gem-name">${esc(r.gemeindename)}</b> <span class="klein">${esc(r.kanton || "")}</span><span class="meta">${zahl(r.einwohner)} Einw.</span></td>
+      <td data-label="Typ">${chip(r.gemeindetyp)}</td><td data-label="Produkt · Quelle">${esc(r.produktlinie)}<span class="meta">${esc(r.quelle)} · ${esc(r.verfahren)}</span></td>
+      <td data-label="Kunde">${r.bestandskunde === "ja" ? "Bestandskunde" : "Neukunde"}</td><td class="n" data-label="Kontakte">${r.kontakte_12m}</td></tr>`).join("")
+    : `<tr class="leer"><td colspan="6">In eurer Region gibt es in diesem Quartal keine Opportunität.</td></tr>`) + "</tbody>";
+}
+
+// Auswahlfeld für den Status einer Offerte
+function statusWahl(id, name) {
+  const st = normStatus(zustand.erg[id]);
+  return `<select class="mini status-wahl" data-erg="${esc(id)}" data-st="${st || "geplant"}" aria-label="Status ${name}">
+    ${STATUS.map(([k, n]) => `<option value="${k}" ${st === k ? "selected" : ""}>${n}</option>`).join("")}</select>`;
+}
+// Gestapelter Balken nach Status (HTML, skaliert ohne winzige Schrift)
+function stapel(zaehl, total, legende = true) {
+  const teile = STATUS.filter(([k]) => zaehl[k]).map(([k, n]) =>
+    `<i style="flex:${zaehl[k]};background:${STATUS_FARBE[k]}" title="${n}: ${zaehl[k]}"></i>`).join("");
+  return `<div class="stapel" role="img" aria-label="${STATUS.map(([k, n]) => `${n} ${zaehl[k] || 0}`).join(", ")}">${total ? teile : '<i style="flex:1;background:var(--linie)"></i>'}</div>
+    ${legende ? `<div class="legende">${STATUS.map(([k, n]) => `<span><i style="background:${STATUS_FARBE[k]}"></i>${n} <b>${zaehl[k] || 0}</b></span>`).join("")}</div>` : ""}`;
 }
 
 function pruefeMix(rows) {
@@ -284,12 +446,12 @@ function exportiere() {
   const { sortiert } = auswahl();
   const sp = ["rang", "id", "bfs_nr", "gemeindename", "kanton", "sprachregion", "gemeindetyp", "einwohner", "produktlinie", "quelle", "verfahren", "bestandskunde", "kontakte_12m",
     "gewinnchance_pct", "offertwert_chf1000", "bandbreite_von", "bandbreite_bis", "erwarteter_wert_chf1000", "platz", "weg", "begruendung",
-    "am_entscheid", "am_grund", "am_haette_gewaehlt", "ergebnis"];
+    "am_entscheid", "am_grund", "am_haette_gewaehlt", "status"];
   const platzName = { ...Object.fromEntries(Object.entries(PLATZ).map(([k, v]) => [k, v[1]])), unter: "unter dem Schnitt", raus: "vom AM herausgenommen", stadt: "ausgeschlossen" };
   sp[0] = "prioritaet";
   const z = sortiert.map((r) => [r.rang, r.id, r.bfs_nr || "", r.gemeindename, r.kanton || "", r.sprachregion, r.gemeindetyp, r.einwohner, r.produktlinie, r.quelle, r.verfahren, r.bestandskunde, r.kontakte_12m,
     (r.chance * 100).toFixed(1), r.wert.toFixed(0), r.unten.toFixed(0), r.oben.toFixed(0), r.erwartet.toFixed(0), platzName[r.status],
-    DRIN.has(r.status) ? "" : weg(r), grund(r), zustand.over[r.id] || "", zustand.over[r.id + ":grund"] || "", zustand.am[r.id] ? "ja" : "", zustand.erg[r.id] || ""]);
+    DRIN.has(r.status) ? "" : weg(r), grund(r), zustand.over[r.id] || "", zustand.over[r.id + ":grund"] || "", zustand.am[r.id] ? "ja" : "", DRIN.has(r.status) ? (normStatus(zustand.erg[r.id]) || "geplant") : ""]);
   const csv = "﻿" + [sp, ...z].map((zeile) => zeile.map((f) => /[;"\n]/.test(String(f)) ? `"${String(f).replace(/"/g, '""')}"` : f).join(";")).join("\r\n");
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
@@ -349,7 +511,7 @@ function zeigeGemeinden() {
 
 // ------------------------------------------------------------ Rückblick & Pilot
 function baueRueckblick() {
-  const k = M.kennzahlen, lk = k.lernkosten, nu = k.nutzen;
+  const k = M.kennzahlen, lk = k.lernkosten, nu = k.nutzen, G = I.gruppe;
   const max = Math.max(k.auftraege_liste, 40);
   const bahn = (wert, farbe) => `<span class="bahn"><i style="width:${(wert / max) * 75}%;background:${farbe}"></i><b>${zahl(wert)}</b></span>`;
   // Gewinnkurve: Text in SVG-Einheiten gross genug, damit er auch bei 320 px Breite lesbar bleibt
@@ -374,11 +536,42 @@ function baueRueckblick() {
           <text x="50" y="20">Anteil aller Aufträge gefunden</text>
         </svg><p class="klein">Blau: nach Liste offeriert. Grau gestrichelt: zufällige Auswahl.</p></div>
     </div>
-    <h3>Wohin sich die Arbeit verschiebt</h3>
-    <div class="tabelle-wrap"><table class="t"><thead><tr><th scope="col">Gemeindetyp</th><th scope="col" class="n">Prüf-Offerten</th><th scope="col" class="n">davon gewonnen</th><th scope="col" class="n">auf der Liste</th><th scope="col" class="n">Anteil des Typs auf der Liste</th></tr></thead><tbody>
+
+    <h3>Warum das geht</h3>
+    <p>${esc(G.warumSatz)}</p>
+    <div class="tabelle-wrap"><table class="t"><thead><tr><th scope="col">Gemeindetyp</th><th scope="col" class="n">Anteil an den Offerten</th><th scope="col" class="n">Anteil an allen Gemeinden</th><th scope="col" class="n">Anteil gewonnen<span class="th-sub">Prüf-Offerten</span></th></tr></thead><tbody>
       ${k.zusammensetzung.map((z) => `<tr><td class="voll">${chip(z.typ, true)}</td>
-        <td class="n" data-label="Prüf-Offerten">${z.test}</td><td class="n" data-label="davon gewonnen">${pct(z.ja_anteil, 1)}</td><td class="n" data-label="auf der Liste">${z.auf_liste}</td><td class="n" data-label="Anteil auf der Liste"><b>${pct(z.anteil_auf_liste, 1)}</b></td></tr>`).join("")}
+        <td class="n" data-label="Anteil an den Offerten">${pct(z.anteil_offerten, 1)}</td><td class="n" data-label="Anteil an allen Gemeinden">${pct(z.anteil_gemeinden, 1)}</td>
+        <td class="n" data-label="Anteil gewonnen"><b>${pct(z.ja_anteil, 1)}</b></td></tr>`).join("")}
     </tbody></table></div>
+
+    <h3>Unsere Liste</h3>
+    <p class="klein"><i>Geprüft an Offerten aus der Vergangenheit – ab 2027 stehen hier die neuen Opportunitäten (siehe Offertliste).</i></p>
+    <div class="tabelle-wrap"><table class="t"><thead><tr><th scope="col" class="n">Rang</th><th scope="col">Gemeinde · Offerte</th><th scope="col">Typ</th><th scope="col" class="n">Gewinnchance</th><th scope="col">Begründung</th></tr></thead><tbody>
+      ${k.top10.map((r, i) => `<tr><td class="n nur-gross">${i + 1}</td><td class="voll"><span class="nur-klein klein">Rang ${i + 1} · </span><b class="gem-name">${esc(r.gemeinde)}</b> <span class="meta">${esc(r.id)}</span></td>
+        <td data-label="Typ">${chip(r.typ)}</td><td class="n" data-label="Gewinnchance"><b>${pct(r.chance)}</b></td><td class="voll" data-label="Begründung">${esc(kurzGrund(r))}</td></tr>`).join("")}
+    </tbody></table></div>
+    <p style="margin-top:16px">Zusammensetzung der obersten 225 von 900 Prüf-Offerten. <b>${esc(G.verschiebung)}</b></p>
+    <div class="tabelle-wrap"><table class="t"><thead><tr><th scope="col">Gemeindetyp</th><th scope="col" class="n">In den obersten 225</th><th scope="col" class="n">Anteil an der Liste</th><th scope="col" class="n">Alle Prüf-Offerten des Typs</th><th scope="col" class="n">Anteil des Typs auf der Liste</th></tr></thead><tbody>
+      ${k.zusammensetzung.map((z) => `<tr><td class="voll">${chip(z.typ, true)}</td>
+        <td class="n" data-label="In den obersten 225">${z.auf_liste}</td><td class="n" data-label="Anteil an der Liste">${pct(z.anteil_an_liste)}</td>
+        <td class="n" data-label="Alle Prüf-Offerten">${z.test}</td><td class="n" data-label="Anteil des Typs auf der Liste"><b>${pct(z.anteil_auf_liste)}</b></td></tr>`).join("")}
+    </tbody></table></div>
+
+    <h3>Woran man gute Chancen erkennt</h3>
+    <div class="zwei">
+      <div class="karte"><b class="t">Unsere drei wichtigsten Merkmale</b>
+        <table class="t"><thead><tr><th scope="col">Merkmal</th><th scope="col" class="n">Anteil gewonnen</th><th scope="col" class="n">zum Vergleich</th></tr></thead><tbody>
+        ${G.merkmale.map(([name, sp, w, vName, vW]) => `<tr><td class="voll"><b>${esc(name)}</b></td>
+          <td class="n" data-label="Anteil gewonnen"><b>${pct(M.anteile[sp][w].ja)}</b></td><td class="n" data-label="${esc(vName)}">${esc(vName)}: ${pct(M.anteile[sp][vW].ja)}</td></tr>`).join("")}
+        </tbody></table></div>
+      <div class="karte"><b class="t">Ja-Anteil nach Bestandskunde und Quelle</b>
+        <table class="t"><thead><tr><th scope="col"></th><th scope="col" class="n">Anfrage der Gemeinde</th><th scope="col" class="n">Andere Quellen</th></tr></thead><tbody>
+        ${[["ja", "Bestandskunde"], ["nein", "Neukunde"]].map(([bk, n]) => `<tr><td class="voll"><b>${n}</b></td>
+          ${["anfrage", "andere"].map((q) => `<td class="n" data-label="${q === "anfrage" ? "Anfrage der Gemeinde" : "Andere Quellen"}"><b>${pct(M.kombi[bk + "|" + q].ja, 1)}</b><span class="meta">${zahl(M.kombi[bk + "|" + q].n)} Offerten</span></td>`).join("")}</tr>`).join("")}
+        </tbody></table></div>
+    </div>
+    <div class="merke">${G.wennDann.map(([w, d]) => `<b>Wenn</b> ${esc(w)}, <b>dann</b> ${esc(d)}.`).join("<br>")}</div>
     <div class="merke"><b>Entdeckungsplätze: was sie kosten, was sie bringen.</b> Mit ${lk.liste_plaetze} Listenplätzen und ${lk.entdeckung_plaetze} Plätzen für Neukunden
       werden es im Schnitt <b>${zahl(lk.auftraege_mit_entdeckung, 1)} statt ${zahl(lk.auftraege_nur_liste, 1)} Aufträge</b> pro Quartal
       (Unterschied je nach Aufteilung ${zahl(lk.kosten_spanne[0], 1)} bis ${zahl(lk.kosten_spanne[1], 1)}).
@@ -397,42 +590,210 @@ function baueRueckblick() {
           <li>Die Spanne kommt aus sechs verschiedenen Aufteilungen der Daten. Eine einzelne Zahl wäre genauer, als wir es wissen.</li>
         </ul></div>
     </div>`;
-  zeigePilot();
 }
 
-function zeigePilot() {
-  const { sortiert } = quartal.rows.length ? auswahl() : { sortiert: [] };
-  // Nur offerierte Fälle haben ein Ergebnis. Darum zählen die AM-Fälle erst, wenn sie im Pilotmodus auch offeriert werden.
-  const gruppen = { "Liste und AM": [], "nur Liste": [], "nur AM": [] };
-  let ohneOfferte = 0;
-  sortiert.forEach((r) => {
-    const off = DRIN.has(r.status), a = !!zustand.am[r.id];
-    if (!off) { if (a) ohneOfferte++; return; }
-    if (r.status === "pa" || r.status === "am") gruppen["nur AM"].push(r);
-    else if (a) gruppen["Liste und AM"].push(r);
-    else gruppen["nur Liste"].push(r);
+// ------------------------------------------------------------ Cockpit Pilotjahr
+// Alle gemerkten Quartale mit ihrer Liste und ihrem Bearbeitungsstand
+function jahrDaten() {
+  return register().map((q) => {
+    const z = q.name === quartal.name ? zustand : zustandVon(q.name);
+    const rows = (lies("radar:rows:" + q.name) || []).map(rechne);
+    const { sortiert } = auswahlFuer(rows, z);
+    const drin = sortiert.filter((r) => DRIN.has(r.status)).map((r) => ({ ...r, q: q.name, z, st: normStatus(z.erg[r.id]), amWahl: !!z.am[r.id] }));
+    return { name: q.name, z, sortiert, drin };
   });
-  const eingetragen = Object.values(zustand.erg).filter(Boolean).length;
-  $("#pilot").innerHTML = `
-    <div class="zwei">
-      <div class="karte"><b class="t">So messen wir im Pilot</b><ol style="margin:4px 0;padding-left:20px">
-        <li>Vor dem Blick auf die Liste markieren die Account Manager, welche Opportunitäten sie offerieren würden («AM hätte gewählt»).</li>
-        <li><b>Pilotmodus</b> einschalten: Fälle, die Liste und AM beide wählen, werden offeriert. Die restlichen Plätze teilen sich <b>je zur Hälfte</b> die besten Fälle «nur Liste» und «nur AM». Nur so gibt es für beide Seiten ein Ergebnis.</li>
-        <li>Nach jedem Entscheid der Gemeinde wird das Ergebnis eingetragen – in der Liste oder über den Export und erneuten Upload.</li>
-        <li><b>Zwei Quartale</b>, weil 80 Offerten pro Quartal stark schwanken (etwa ±5 Aufträge) und Gemeinden oft erst nach Monaten entscheiden.</li>
-        <li>Die Entscheidungszahl wird <b>vorher</b> mit der Geschäftsleitung vereinbart: Gewinnquote «nur Liste» gegen «nur AM».</li></ol></div>
-      <div class="karte"><b class="t">Stand im aktuellen Quartal</b>
-        <p class="klein">Pilot-Spalten in der Offertliste einschalten, um «AM hätte gewählt» und das Ergebnis einzutragen. ${eingetragen} Ergebnisse eingetragen.</p>
-        <table class="t"><thead><tr><th>Offeriert, weil …</th><th>Fälle</th><th>gewonnen</th><th>verloren</th><th>Gewinnquote</th></tr></thead><tbody>
-        ${Object.entries(gruppen).map(([n, rs]) => {
-          const g = rs.filter((r) => zustand.erg[r.id] === "gewonnen").length, v = rs.filter((r) => zustand.erg[r.id] === "verloren").length;
-          return `<tr><td class="voll"><b>${n}</b></td><td class="n" data-label="Fälle">${rs.length}</td><td class="n" data-label="gewonnen">${g}</td><td class="n" data-label="verloren">${v}</td><td class="n" data-label="Gewinnquote">${g + v ? pct(g / (g + v)) : "–"}</td></tr>`;
-        }).join("")}</tbody></table>
-        <p class="klein">Entscheidend ist «nur Liste» gegen «nur AM»: Dort unterscheiden sich Modell und Erfahrung.
-        ${ohneOfferte ? `<br><b>${ohneOfferte} Fälle hätte der AM gewählt, sie werden aber nicht offeriert</b> – ohne Pilotmodus fehlt für sie das Ergebnis.` : ""}</p></div>
+}
+const zaehle = (rows) => Object.fromEntries(STATUS.map(([k]) => [k, rows.filter((r) => r.st === k).length]));
+const quote = (g, v) => (g + v ? pct(g / (g + v)) : "–");
+let cZeigen = 25;
+
+function zeigeCockpit() {
+  if (!M) return;
+  const Q = jahrDaten(), alle = Q.flatMap((q) => q.drin), z = zaehle(alle);
+  const entsch = alle.filter((r) => r.st === "gewonnen" || r.st === "verloren");
+  const erwEntsch = entsch.reduce((s, r) => s + r.chance, 0), zufall = entsch.length * M.kennzahlen.ja_anteil;
+  const prognose = alle.reduce((s, r) => s + r.chance, 0);
+  const gewonnen = alle.filter((r) => r.st === "gewonnen");
+  const wertGew = gewonnen.reduce((s, r) => s + r.wert, 0);
+  const plan = Q.reduce((s, q) => s + (+q.z.kap || 80), 0);
+  const stand = lies("radar:stand");
+
+  // Liste gegen Erfahrung über das ganze Jahr (nur offerierte Fälle haben ein Ergebnis)
+  const gruppe = (r) => r.status === "entd" ? "Entdeckungsplätze (Neukunden)" : (r.status === "pa" || r.status === "am") ? "nur AM" : r.amWahl ? "Liste und AM" : "nur Liste";
+  const gruppen = ["Liste und AM", "nur Liste", "nur AM", "Entdeckungsplätze (Neukunden)"].map((n) => [n, alle.filter((r) => gruppe(r) === n)]);
+  // Entscheidungsregel: Gewinnquote «nur Liste» gegen «nur AM»
+  const gq = (n) => { const rs = gruppen.find((g) => g[0] === n)[1]; const g = rs.filter((r) => r.st === "gewonnen").length, v = rs.filter((r) => r.st === "verloren").length; return { q: g + v ? g / (g + v) : null, n: g + v }; };
+  const L = gq("nur Liste"), A = gq("nur AM");
+  const pp = (x) => (x * 100).toFixed(1).replace(".", ",");
+  const regel = L.q === null || A.q === null ? { farbe: "#8a96a3", text: "Noch kein Vergleich möglich" }
+    : L.n < 30 || A.n < 30 ? { farbe: "#c9962b", text: `Zwischenstand: Liste ${pp(L.q - A.q)} Prozentpunkte vor AM – noch zu wenige entschiedene Fälle (${L.n} / ${A.n})` }
+    : L.q - A.q >= I.entscheidRegel.vorsprung ? { farbe: "#1a8a5f", text: `Zwischenstand erfüllt: Liste ${pp(L.q - A.q)} Prozentpunkte vor AM` }
+    : { farbe: "#b3261e", text: `Zwischenstand nicht erfüllt: Liste ${pp(L.q - A.q)} Prozentpunkte gegenüber AM` };
+  // Ampel: gewonnen gegenüber Erwartung laut Modell (für die entschiedenen Offerten)
+  const verh = erwEntsch ? z.gewonnen / erwEntsch : null;
+  const ampel = verh === null ? null : verh >= 0.9 ? ["#3fcf8e", "im Plan"] : verh >= 0.75 ? ["#f0c04a", "knapp unter Plan"] : ["#ff7b72", "unter Plan"];
+  const fz = $("#c-zust")?.value ?? (rolle.typ === "am" ? "meine" : "");
+  const verlauf = Q.flatMap((q) => (q.z.log || []).map((l) => ({ ...l, q: q.name }))).sort((a, b) => (b.n || 0) - (a.n || 0) || b.t.localeCompare(a.t)).slice(0, 40);
+  const zeileErg = (n, rs, klasse = "") => { const g = rs.filter((r) => r.st === "gewonnen").length, v = rs.filter((r) => r.st === "verloren").length;
+    return `<tr class="${klasse}"><td class="voll"><b>${n}</b></td><td class="n" data-label="offeriert">${rs.length}</td><td class="n" data-label="gewonnen">${g}</td><td class="n" data-label="verloren">${v}</td><td class="n" data-label="Gewinnquote"><b>${quote(g, v)}</b></td></tr>`; };
+
+  const fst = $("#c-status")?.value ?? "offen";
+  const laufend = alle.filter((r) => !fz || zustaendig(r) === (fz === "meine" ? rolle.am : fz)).filter((r) => fst === "offen" ? (r.st === "bearbeitung" || r.st === "offeriert") : fst === "alle" ? true : (r.st || "geplant") === fst)
+    .sort((a, b) => sortQ(a.q) - sortQ(b.q) || b.chance - a.chance);
+
+  $("#cockpit").innerHTML = `
+    ${stand ? `<div class="meldung warn"><b>Demo-Stand ${esc(stand)}.</b> Ausgang aus echten bisherigen Offerten, Bearbeitungsstand und Vorauswahl der Account Manager simuliert (AM wählen wie heute: Bestandskunden und grosse Gemeinden zuerst).</div>` : ""}
+    ${Q.length ? "" : `<div class="lade" style="animation:none">Noch kein Quartal erfasst.</div>`}
+    <div class="phase-zeile"><span class="klein">Ansicht als <b>${esc(rolleText())}</b>${rolle.typ === "gl" ? " – nur lesen" : ""}</span>
+      <button class="knopf sek klein-k" type="button" id="bericht">Bericht für die Geschäftsleitung drucken</button></div>
+    <div class="kpis">
+      <div class="kpi haupt">${ampel ? `<span class="ampel"><i style="background:${ampel[0]}"></i>${ampel[1]}</span>` : ""}<b>${z.gewonnen} Aufträge gewonnen</b><span>von ${entsch.length} entschiedenen Offerten (Gewinnquote ${quote(z.gewonnen, z.verloren)}) – erwartet laut Modell ≈ ${zahl(erwEntsch)}, bei zufälliger Auswahl ≈ ${zahl(zufall)}</span></div>
+      <div class="kpi"><b>${alle.length} von ${plan}</b><span>Offerten im Pilot geplant (${Q.length} ${Q.length === 1 ? "Quartal" : "Quartale"})</span></div>
+      <div class="kpi"><b>${z.bearbeitung + z.offeriert}</b><span>in Arbeit: ${z.bearbeitung} in Bearbeitung, ${z.offeriert} offeriert mit offenem Entscheid</span></div>
+      <div class="kpi"><b>≈ ${zahl(prognose)} Aufträge</b><span>Prognose fürs ganze Pilotjahr laut Modell (alle geplanten Offerten)</span></div>
+      <div class="kpi"><b>${chf(wertGew)}</b><span>geschätzter Wert der gewonnenen Aufträge über 5 Jahre (≈ ${chf(wertGew / 5)} pro Jahr)</span></div>
+      <div class="kpi gold"><b>${gewonnen.filter((r) => r.bestandskunde === "nein").length}</b><span>davon Neukunden gewonnen</span></div>
     </div>
+
+    <h3>Fortschritt pro Quartal</h3>
+    <div class="tabelle-wrap"><table class="t"><thead><tr><th scope="col">Quartal</th><th scope="col">Phase</th><th scope="col">Stand</th>
+      ${STATUS.map(([, n]) => `<th scope="col" class="n">${n.replace(" – Entscheid offen", "")}</th>`).join("")}<th scope="col" class="n">Gewinnquote</th><th scope="col" class="n">Erwartet<span class="th-sub">laut Modell</span></th><th scope="col"></th></tr></thead><tbody>
+      ${Q.map((q) => { const zz = zaehle(q.drin);
+        return `<tr><td class="voll"><b class="gem-name">${esc(q.name)}</b>${q.z.pilot ? ' <span class="marke am">Pilotmodus</span>' : ""}</td>
+          <td data-label="Phase"><span class="klein">${esc(I.phasen[q.z.phase])}${q.z.phase === "vorauswahl" ? ` · ${Object.keys(q.z.abgabe || {}).length}/${I.regionen.length} AM` : ""}</span></td>
+          <td class="voll" style="min-width:180px">${stapel(zz, q.drin.length, false)}</td>
+          ${STATUS.map(([k, n]) => `<td class="n" data-label="${n.replace(" – Entscheid offen", "")}">${zz[k]}</td>`).join("")}
+          <td class="n" data-label="Gewinnquote"><b>${quote(zz.gewonnen, zz.verloren)}</b></td>
+          <td class="n" data-label="Erwartet laut Modell">≈ ${zahl(q.drin.reduce((s, r) => s + r.chance, 0))}</td>
+          <td><button class="mini" type="button" data-oeffne="${esc(q.name)}">Liste öffnen</button></td></tr>`; }).join("")}
+    </tbody></table></div>
+    ${stapel(z, alle.length, true).replace(/^<div class="stapel"[^]*?<\/div>/, "")}
+
+    <div class="zwei" style="margin-top:20px">
+      <div class="karte"><b class="t">Liste gegen Erfahrung – ganzes Pilotjahr</b>
+        <table class="t"><thead><tr><th scope="col">Offeriert, weil …</th><th scope="col" class="n">offeriert</th><th scope="col" class="n">gewonnen</th><th scope="col" class="n">verloren</th><th scope="col" class="n">Gewinnquote</th></tr></thead><tbody>
+        ${gruppen.map(([n, rs]) => zeileErg(n, rs, n.startsWith("Entdeckung") ? "unter" : "")).join("")}</tbody></table>
+        <div class="regel" style="border-left-color:${regel.farbe}"><b>Entscheidungsregel:</b> ${esc(I.entscheidRegel.text)}<br><span style="color:${regel.farbe};font-weight:700">● ${esc(regel.text)}</span></div>
+        <p class="klein">${Q.some((q) => !q.z.pilot) ? "Quartale ohne Pilotmodus liefern für «nur AM» kein Ergebnis. " : ""}Die Entdeckungsplätze laufen ausserhalb des Vergleichs.</p></div>
+      <div class="karte"><b class="t">Gewinnquote nach Gemeindetyp</b>
+        <table class="t"><thead><tr><th scope="col">Typ</th><th scope="col" class="n">offeriert</th><th scope="col" class="n">gewonnen</th><th scope="col" class="n">verloren</th><th scope="col" class="n">Gewinnquote</th></tr></thead><tbody>
+        ${["A", "B", "C", "D"].map((t) => zeileErg(chip(t), alle.filter((r) => r.gemeindetyp === t))).join("")}</tbody></table></div>
+    </div>
+
+    <h3>Offerten im Überblick</h3>
+    <div class="filter">
+      <select id="c-status" aria-label="Status filtern">
+        ${[["offen", "Alle in Arbeit"], ["alle", "Alle Offerten"], ["geplant", "Geplant"], ["bearbeitung", "In Bearbeitung"], ["offeriert", "Offeriert – Entscheid offen"], ["gewonnen", "Gewonnen"], ["verloren", "Verloren"]]
+          .map(([v, n]) => `<option value="${v}" ${v === fst ? "selected" : ""}>${n}</option>`).join("")}
+      </select>
+      <select id="c-zust" aria-label="Zuständigkeit filtern"><option value="">Alle Regionen</option>${rolle.typ === "am" ? `<option value="meine" ${fz === "meine" ? "selected" : ""}>Meine Region (${esc(rolle.am)})</option>` : ""}
+        ${I.regionen.map(([n]) => `<option ${fz === n ? "selected" : ""}>${esc(n)}</option>`).join("")}</select>
+      <span class="klein">${laufend.length} Offerten</span>
+    </div>
+    <div class="tabelle-wrap"><table class="t"><thead><tr><th scope="col">Quartal</th><th scope="col">Gemeinde</th><th scope="col">Typ</th><th scope="col">Produkt · Quelle</th><th scope="col" class="n">Gewinnchance</th><th scope="col" class="n">Offertwert<span class="th-sub">CHF 1'000</span></th><th scope="col">Platz</th><th scope="col">Zuständig</th><th scope="col">Status</th></tr></thead><tbody>
+      ${laufend.length ? laufend.slice(0, cZeigen).map((r) => `<tr><td data-label="Quartal">${esc(r.q)}</td>
+        <td class="voll"><b class="gem-name">${esc(r.gemeindename)}</b> <span class="klein">${esc(r.kanton || "")}</span><span class="meta">${r.bestandskunde === "ja" ? "Bestandskunde" : "Neukunde"}</span></td>
+        <td data-label="Typ">${chip(r.gemeindetyp)}</td><td data-label="Produkt · Quelle">${esc(r.produktlinie)}<span class="meta">${esc(r.quelle)}</span></td>
+        <td class="n" data-label="Gewinnchance">${pct(r.chance)}</td><td class="n" data-label="Offertwert">${zahl(r.wert)}</td>
+        <td data-label="Platz"><span class="marke ${PLATZ[r.status][0]}">${PLATZ[r.status][1]}</span></td>
+        <td data-label="Zuständig"><span class="klein">${esc(zustaendig(r))}</span></td>
+        <td data-label="Status">${darf("status", r, r.z) ? statusWahlQ(r) : statusText(r.st)}</td></tr>`).join("")
+        : `<tr class="leer"><td colspan="9">Keine Offerte mit diesem Status.</td></tr>`}
+    </tbody></table></div>
+    ${laufend.length > cZeigen ? `<p><button class="knopf sek" type="button" id="c-mehr">Mehr anzeigen</button></p>` : ""}
+
+    <h3>Verlauf: wer hat wann was geändert</h3>
+    <div class="karte">${verlauf.length ? `<ul class="verlauf">${verlauf.map((l) => `<li><span class="klein">${new Date(l.t).toLocaleString("de-CH", { dateStyle: "short", timeStyle: "short" })} · ${esc(l.q)} · ${esc(l.wer)}</span><br><b>${esc(l.was)}</b> ${esc(l.text)}</li>`).join("")}</ul>` : '<p class="klein" style="margin:0">Noch keine Änderungen protokolliert.</p>'}</div>
+
+    <h3>So messen wir im Pilot</h3>
+    <div class="karte"><ol style="margin:4px 0;padding-left:20px">${I.pilotSchritte.map((s) => `<li>${s}</li>`).join("")}</ol></div>
+    <h3>Unsere offenen Punkte aus Block 3 – und was der Radar dazu zeigt</h3>
+    <div class="tabelle-wrap"><table class="t"><thead><tr><th scope="col">Offener Punkt</th><th scope="col">Antwort im Radar</th></tr></thead><tbody>
+      ${I.gruppe.offenePunkte.map(([f, a]) => `<tr><td class="voll"><b>${esc(f)}</b></td><td class="voll" data-label="Antwort im Radar">${esc(a)}</td></tr>`).join("")}
+    </tbody></table></div>
     <h3>Was wir von der Geschäftsleitung brauchen</h3>
     <div class="merke"><ol style="margin:0;padding-left:20px">${I.antrag.map((a) => `<li>${esc(a)}</li>`).join("")}</ol></div>`;
+}
+// Status-Auswahl im Cockpit: gilt für das Quartal der Zeile
+function statusWahlQ(r) {
+  return `<select class="mini status-wahl" data-cq="${esc(r.q)}" data-cid="${esc(r.id)}" data-st="${r.st || "geplant"}" aria-label="Status ${esc(r.gemeindename)}">
+    ${STATUS.map(([k, n]) => `<option value="${k}" ${r.st === k ? "selected" : ""}>${n}</option>`).join("")}</select>`;
+}
+function setzeStatus(qName, id, st, r) {
+  const z = qName === quartal.name ? zustand : zustandVon(qName);
+  if (!darf("status", r, z)) return;
+  const alt = normStatus(z.erg[id]);
+  if (st) z.erg[id] = st; else delete z.erg[id];
+  protokolliere(z, "Status", `${r.gemeindename}: ${STATUS_NAME[alt]} → ${STATUS_NAME[st]}`, id);
+  schreib("radar:" + qName, z);
+}
+
+// Demo: ganzes Pilotjahr mit simuliertem Stand laden
+const zufallVon = (s) => { let h = 2166136261; for (const c of s) h = Math.imul(h ^ c.charCodeAt(0), 16777619); return ((h >>> 0) % 10000) / 10000; };
+async function ladeDemoJahr() {
+  if (register().length > 1 && !confirm("Das Demo-Pilotjahr ersetzt die Quartale Q1–Q4/2027 und ihren Bearbeitungsstand. Weiter?")) return;
+  const d = await fetch("daten/demo_pilotjahr_2027.json").then((r) => r.json());
+  const reg = register().filter((q) => !d.quartale.some((x) => x.name === q.name));
+  d.quartale.forEach((q, qi) => {
+    const roh = q.rows.map((r) => ({ ...r, id: r.offerte_id }));
+    const SP = ["id", "bfs_nr", "gemeindename", "kanton", "sprachregion", "gemeindetyp", "einwohner", "produktlinie", "quelle", "verfahren", "bestandskunde", "kontakte_12m"];
+    schreib("radar:rows:" + q.name, roh.map((r) => Object.fromEntries(SP.map((s) => [s, r[s]]))));
+    reg.push({ name: q.name, quelle: "Demo-Pilotjahr: 320 bisherige Offerten als Opportunitäten" });
+    const z = { ...leerZustand(), pilot: true };
+    // Ablauf: Q1 abgeschlossen, Q2 und Q3 freigegeben, Q4 in der Vorauswahl (7 von 11 AM haben abgegeben)
+    const monat = [1, 4, 7, 10][qi];
+    let nr = qi * 1000;   // Demo-Einträge: kleine Nummern, echte Änderungen stehen darüber
+    const tag = (m, d) => new Date(Date.UTC(m < 1 ? 2026 : 2027, (m + 11) % 12, d, 8 + (d % 8), 15)).toISOString();
+    const regionen = I.regionen.map(([n]) => n), abgegeben = qi < 3 ? regionen : regionen.slice(0, 7);
+    abgegeben.forEach((n, k) => { z.abgabe[n] = tag(monat - 1, 18 + k % 9); z.log.push({ t: z.abgabe[n], n: ++nr, wer: "AM " + n, was: "Vorauswahl abgegeben", text: n, id: "" }); });
+    // Vorauswahl der Account Manager wie heute: Bestandskunden zuerst, dann grosse Gemeinden
+    roh.filter((r) => r.einwohner <= 50000).sort((a, b) => (b.bestandskunde === "ja") - (a.bestandskunde === "ja") || b.einwohner - a.einwohner)
+      .slice(0, 80).filter((r) => abgegeben.includes(zustaendig(r))).forEach((r) => { z.am[r.id] = 1; });
+    z.phase = qi === 0 ? "abgeschlossen" : qi < 3 ? "freigegeben" : "vorauswahl";
+    if (qi < 3) z.log.push({ t: tag(monat, 5), n: ++nr, wer: I.rollen.vl, was: "Freigabe", text: `${q.name}: 80 Offerten, Kapazität 80, Entdeckung 10, Pilotmodus`, id: "" });
+    if (qi === 0) z.log.push({ t: tag(9, 29), n: qi * 1000 + 900, wer: I.rollen.vl, was: "Abschluss", text: q.name, id: "" });
+    const ausgang = Object.fromEntries(roh.map((r) => [r.id, r._ergebnis === "ja" ? "gewonnen" : "verloren"]));
+    auswahlFuer(roh.map(rechne), z).sortiert.filter((r) => DRIN.has(r.status)).forEach((r) => {
+      const p = zufallVon(r.id);
+      const st = qi === 0 ? ausgang[r.id]
+        : qi === 1 ? (p < 0.85 ? ausgang[r.id] : "offeriert")
+        : qi === 2 ? (p < 0.25 ? ausgang[r.id] : p < 0.6 ? "offeriert" : p < 0.9 ? "bearbeitung" : "")
+        : "";
+      if (st) z.erg[r.id] = st;
+    });
+    const n = Object.keys(z.erg).length;
+    if (n) z.log.push({ t: tag(9, 28), n: qi * 1000 + 800, wer: I.rollen.ot, was: "Status nachgeführt", text: `${n} Offerten (Demo)`, id: "" });
+    schreib("radar:" + q.name, z);
+  });
+  reg.sort((a, b) => sortQ(a.name) - sortQ(b.name));
+  schreib("radar:quartale", reg);
+  schreib("radar:stand", d.stand);
+  zeigeQuartal("Q3/2027");
+  zeigeCockpit();
+}
+// Gemeinsamer Stand für Team und Geschäftsleitung: als Datei weitergeben
+function exportiereJahr() {
+  const daten = { version: 1, exportiert: new Date().toISOString(), stand: lies("radar:stand"), quartale: register().map((q) => ({
+    ...q, rows: lies("radar:rows:" + q.name) || [], zustand: q.name === quartal.name ? zustand : zustandVon(q.name) })) };
+  ladeHerunter(new Blob([JSON.stringify(daten)], { type: "application/json" }), "marktradar_pilotjahr_" + new Date().toISOString().slice(0, 10) + ".json");
+}
+function importiereJahr(datei) {
+  const r = new FileReader();
+  r.onload = () => {
+    try {
+      const d = JSON.parse(r.result);
+      if (!Array.isArray(d.quartale)) throw new Error();
+      d.quartale.forEach((q) => { schreib("radar:rows:" + q.name, q.rows); schreib("radar:" + q.name, q.zustand); });
+      schreib("radar:quartale", d.quartale.map(({ name, quelle }) => ({ name, quelle })).sort((a, b) => sortQ(a.name) - sortQ(b.name)));
+      schreib("radar:stand", d.stand || null);
+      zeigeQuartal(d.quartale[d.quartale.length - 1].name); zeigeCockpit();
+    } catch (e) { alert("Diese Datei ist kein exportiertes Pilotjahr des Marktradars."); }
+  };
+  r.readAsText(datei, "utf-8");
+}
+function ladeHerunter(blob, name) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = name; a.click();
 }
 
 // ------------------------------------------------------------ Herleitung
@@ -451,7 +812,7 @@ function waehleTab(b, fokus) {
   $$(".tab").forEach((t) => t.classList.toggle("aktiv", t.id === "tab-" + b.dataset.tab));
   if (fokus) b.focus();
   b.scrollIntoView({ block: "nearest", inline: "nearest" });
-  if (b.dataset.tab === "pilot" && M) zeigePilot();
+  if (b.dataset.tab === "pilotjahr" && M) zeigeCockpit();
   try { localStorage.setItem("radar:tab", b.dataset.tab); } catch (err) { /* egal */ }
 }
 $("#tabs").addEventListener("click", (e) => { const b = e.target.closest("button[data-tab]"); if (b) waehleTab(b); });
@@ -465,7 +826,34 @@ $("#ansicht").addEventListener("click", (e) => {
   const b = e.target.closest("button"); if (!b) return;
   $$("#ansicht button").forEach((x) => { x.classList.toggle("an", x === b); x.setAttribute("aria-pressed", x === b); }); zeigeListe();
 });
-["#kap", "#entd", "#f-typ", "#suche", "#pilot-spalten", "#pilotmodus"].forEach((s) => $(s).addEventListener("input", () => quartal.rows.length && zeigeListe()));
+["#kap", "#entd", "#f-typ", "#suche", "#pilot-spalten", "#pilotmodus", "#f-status"].forEach((s) => $(s).addEventListener("input", () => { if (!quartal.rows.length) return; zeigeListe(); speichere(); }));
+$("#quartal-wahl").addEventListener("change", (e) => zeigeQuartal(e.target.value));
+["#kap", "#entd", "#pilotmodus"].forEach((s) => $(s).addEventListener("change", () => {
+  if (!darf("einstellen")) return;
+  protokolliere(zustand, "Einstellung", `Kapazität ${zustand.kap}, Entdeckung ${zustand.entd}, Pilotmodus ${zustand.pilot ? "an" : "aus"}`);
+  speichere();
+}));
+["#f-zust"].forEach((s) => $(s).addEventListener("input", () => quartal.rows.length && zeigeListe()));
+
+// Rolle wechseln («Ansicht als») – im Betrieb ergibt sich die Rolle aus dem Login
+function baueRollenwahl() {
+  $("#rolle-wahl").innerHTML = `<optgroup label="Leitung und Team">${["vl", "ot", "gl"].map((t) => `<option value="${t}">${I.rollen[t]}</option>`).join("")}</optgroup>
+    <optgroup label="Account Manager">${I.regionen.map(([n]) => `<option value="am:${esc(n)}">AM ${esc(n)}</option>`).join("")}</optgroup>`;
+  $("#rolle-wahl").value = rolle.typ === "am" ? "am:" + rolle.am : rolle.typ;
+  $("#f-zust").innerHTML = `<option value="">Alle Regionen</option>${rolle.typ === "am" ? `<option value="meine">Meine Region (${esc(rolle.am)})</option>` : ""}
+    ${I.regionen.map(([n]) => `<option value="${esc(n)}">${esc(n)}</option>`).join("")}`;
+  $("#f-zust").value = rolle.typ === "am" ? "meine" : "";
+  document.body.dataset.rolle = rolle.typ;
+}
+$("#rolle-wahl").addEventListener("change", (e) => {
+  const v = e.target.value;
+  rolle = v.startsWith("am:") ? { typ: "am", am: v.slice(3) } : { typ: v, am: "" };
+  schreib("radar:rolle", rolle);
+  baueRollenwahl();
+  if (quartal.rows.length) zeigeListe();
+  zeigeCockpit();
+});
+baueRollenwahl();
 
 // Begründung für AM-Entscheide: eigener Dialog statt Browser-Prompt
 function frageGrund(text) {
@@ -481,38 +869,96 @@ $("#liste").addEventListener("click", async (e) => {
   if (e.target.id === "filter-zurueck") { $("#suche").value = ""; $("#f-typ").value = ""; $('#ansicht button[data-v="alle"]').click(); return; }
   const b = e.target.closest("button[data-act]"); if (!b) return;
   const id = b.dataset.id, act = b.dataset.act;
-  if (act === "zurueck") { delete zustand.over[id]; delete zustand.over[id + ":grund"]; }
+  const r = quartal.rows.find((x) => x.id === id);
+  if (!r || !darf("reinraus", r)) return;
+  if (act === "zurueck") { delete zustand.over[id]; delete zustand.over[id + ":grund"]; protokolliere(zustand, "Zurückgenommen", r.gemeindename, id); }
   else {
-    const r = quartal.rows.find((x) => x.id === id);
-    $("#grund-fall").textContent = r ? `${r.gemeindename} · ${r.produktlinie} · Gewinnchance ${pct(r.chance)}` : "";
+    $("#grund-fall").textContent = `${r.gemeindename} · ${r.produktlinie} · Gewinnchance ${pct(r.chance)}`;
     const grund = await frageGrund(act === "raus" ? "Warum nehmt ihr diesen Fall heraus?" : "Warum soll dieser Fall auf die Liste?");
     if (grund === null) { b.focus(); return; }
     zustand.over[id] = act; if (grund.trim()) zustand.over[id + ":grund"] = grund.trim();
+    protokolliere(zustand, act === "raus" ? "Herausgenommen" : "Hinzugefügt", `${r.gemeindename}${grund.trim() ? " – " + grund.trim() : ""}`, id);
   }
   speichere(); zeigeListe();
 });
 $("#hochladen").addEventListener("click", () => $("#datei").click());
 $("#liste").addEventListener("change", (e) => {
   const t = e.target;
-  if (t.dataset.am) { if (t.checked) zustand.am[t.dataset.am] = 1; else delete zustand.am[t.dataset.am]; }
-  else if (t.dataset.erg) zustand.erg[t.dataset.erg] = t.value;
-  else return;
-  speichere();
-  if (t.dataset.am && $("#pilotmodus").checked) zeigeListe();
+  if (t.dataset.vorauswahl) {   // Vorauswahl eines AM
+    if (!darf("vorauswahl")) return;
+    if (t.checked) zustand.am[t.dataset.vorauswahl] = 1; else delete zustand.am[t.dataset.vorauswahl];
+    speichere(); zeigeListe(); $(`input[data-vorauswahl="${CSS.escape(t.dataset.vorauswahl)}"]`)?.focus(); return;
+  }
+  if (!t.dataset.erg) return;
+  const r = quartal.rows.find((x) => x.id === t.dataset.erg);
+  if (!r || !darf("status", r)) return;
+  const alt = normStatus(zustand.erg[r.id]);
+  if (t.value) zustand.erg[r.id] = t.value; else delete zustand.erg[r.id];
+  protokolliere(zustand, "Status", `${r.gemeindename}: ${STATUS_NAME[alt]} → ${STATUS_NAME[t.value]}`, r.id);
+  speichere(); zeigeListe(); $(`select[data-erg="${CSS.escape(r.id)}"]`)?.focus();
 });
+// Vorauswahl abgeben, Liste freigeben, Quartal abschliessen
+document.addEventListener("click", (e) => {
+  const id = e.target.id;
+  if (id === "abgeben" && darf("vorauswahl")) {
+    const n = quartal.rows.filter((r) => istMeins(r) && zustand.am[r.id]).length;
+    if (!confirm(`Vorauswahl mit ${n} Fällen abgeben? Danach seht ihr die Liste, könnt die Vorauswahl aber nicht mehr ändern.`)) return;
+    zustand.abgabe[rolle.am] = new Date().toISOString();
+    protokolliere(zustand, "Vorauswahl abgegeben", `${rolle.am}: ${n} Fälle`);
+    speichere(); zeigeListe(); zeigeCockpit();
+  } else if (id === "freigeben" && darf("freigeben")) {
+    const fehlen = I.regionen.length - Object.keys(zustand.abgabe).length;
+    if (!confirm(`${quartal.name} freigeben?${fehlen ? ` ${fehlen} Account Manager haben ihre Vorauswahl noch nicht abgegeben.` : ""} Danach ist die Liste fix.`)) return;
+    zustand.phase = "freigegeben";
+    protokolliere(zustand, "Freigabe", `${quartal.name}: ${auswahl().sortiert.filter((r) => DRIN.has(r.status)).length} Offerten, Kapazität ${zustand.kap}, Entdeckung ${zustand.entd}${zustand.pilot ? ", Pilotmodus" : ""}`);
+    speichere(); zeigeListe(); zeigeCockpit();
+  } else if (id === "abschliessen" && darf("abschliessen")) {
+    const offen = auswahl().sortiert.filter((r) => DRIN.has(r.status) && !["gewonnen", "verloren"].includes(normStatus(zustand.erg[r.id]))).length;
+    if (!confirm(`${quartal.name} abschliessen?${offen ? ` ${offen} Offerten sind noch nicht entschieden.` : ""} Danach ist das Quartal nur noch lesbar.`)) return;
+    zustand.phase = "abgeschlossen";
+    protokolliere(zustand, "Abschluss", quartal.name);
+    speichere(); zeigeListe(); zeigeCockpit();
+  }
+});
+// Cockpit: Filter, Status ändern, Quartal öffnen
+$("#cockpit").addEventListener("change", (e) => {
+  const t = e.target;
+  if (t.id === "c-status" || t.id === "c-zust") { cZeigen = 25; zeigeCockpit(); $("#" + t.id).focus(); return; }
+  if (t.dataset.cq) {
+    const zq = jahrDaten().find((q) => q.name === t.dataset.cq);
+    setzeStatus(t.dataset.cq, t.dataset.cid, t.value, zq?.drin.find((r) => r.id === t.dataset.cid));
+    if (t.dataset.cq === quartal.name) zeigeListe();
+    zeigeCockpit(); $(`select[data-cid="${CSS.escape(t.dataset.cid)}"]`)?.focus();
+  }
+});
+$("#cockpit").addEventListener("click", (e) => {
+  const q = e.target.closest("[data-oeffne]");
+  if (q) { zeigeQuartal(q.dataset.oeffne); waehleTab($("#t-liste")); scrollTo(0, 0); return; }
+  if (e.target.id === "c-mehr") { cZeigen += 50; zeigeCockpit(); }
+  if (e.target.id === "bericht") { document.body.classList.add("druck-cockpit"); print(); document.body.classList.remove("druck-cockpit"); }
+});
+$("#demo-jahr").addEventListener("click", ladeDemoJahr);
+$("#jahr-export").addEventListener("click", exportiereJahr);
+$("#jahr-laden").addEventListener("click", () => $("#jahr-datei").click());
+$("#jahr-datei").addEventListener("change", (e) => { if (e.target.files[0]) importiereJahr(e.target.files[0]); e.target.value = ""; });
 $("#export").addEventListener("click", exportiere);
 $("#datei").addEventListener("change", (e) => leseDatei(e.target.files[0]));
 function leseDatei(f) {
   if (!f) return;
   const r = new FileReader();
-  r.onload = () => ladeQuartal(r.result, f.name.replace(/\.csv$/i, ""), "hochgeladen am " + new Date().toLocaleDateString("de-CH"));
+  // Quartal aus dem Dateinamen erkennen, z. B. «opportunitaeten_Q2_2027.csv» → «Q2/2027»
+  const m = /q([1-4])\D{0,3}(20\d\d)/i.exec(f.name);
+  const name = m ? `Q${m[1]}/${m[2]}` : f.name.replace(/\.csv$/i, "");
+  r.onload = () => ladeQuartal(r.result, name, "hochgeladen am " + new Date().toLocaleDateString("de-CH"));
   r.readAsText(f, "utf-8");
 }
 let zieh = 0;
 addEventListener("dragenter", (e) => { e.preventDefault(); zieh++; document.body.classList.add("ziehen"); });
 addEventListener("dragleave", () => { if (--zieh <= 0) { zieh = 0; document.body.classList.remove("ziehen"); } });
 addEventListener("dragover", (e) => e.preventDefault());
-addEventListener("drop", (e) => { e.preventDefault(); zieh = 0; document.body.classList.remove("ziehen"); leseDatei(e.dataTransfer.files[0]); });
+addEventListener("drop", (e) => { e.preventDefault(); zieh = 0; document.body.classList.remove("ziehen");
+  if (!darf("hochladen")) { meldung("warn", "Neue Quartale lädt die Vertriebsleitung hoch."); return; }
+  leseDatei(e.dataTransfer.files[0]); });
 ["#g-typ", "#g-sprache", "#g-kanton", "#g-status", "#g-suche"].forEach((s) => $(s).addEventListener("input", () => { gZeigen = 100; zeigeGemeinden(); }));
 $("#g-mehr").addEventListener("click", () => { gZeigen += 200; zeigeGemeinden(); });
 const gFilter = (typ, status) => { $("#g-typ").value = typ; $("#g-status").value = status; $("#g-sprache").value = ""; $("#g-kanton").value = ""; $("#g-suche").value = ""; gZeigen = 100; zeigeGemeinden(); };
