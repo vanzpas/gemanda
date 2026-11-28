@@ -12,7 +12,7 @@ const chip = (typ, lang = false) => { const t = I.typen[typ];
   return `<span class="chip" title="${esc(t.name)}"><i style="background:${t.farbe}" aria-hidden="true"></i>${typ} · ${esc(lang ? t.name : t.kurz)}</span>`; };
 // Einfache Sprache: Chance in Worten, Beträge wie im Alltag
 const chanceWort = (c) => c >= 0.5 ? "hoch" : c >= 0.25 ? "mittel" : "tief";
-const chanceText = (c) => `${chanceWort(c)} · ${c < 0.05 ? "unter 1" : "etwa " + Math.round(c * 10)} von 10`;
+const chanceText = (c) => `${pct(c)} · ${chanceWort(c)}`;
 const rundCHF = (k) => { const f = k * 1000, schritt = f >= 100000 ? 10000 : 5000; return "rund CHF " + zahl(Math.max(schritt, Math.round(f / schritt) * schritt)); };
 const chanceBalken = (c) => `<div class="chance chance-${chanceWort(c)}"><span class="spur" aria-hidden="true"><i style="width:${Math.max(3, Math.round(c * 100))}%"></i></span><span>${chanceText(c)}</span></div>`;
 const info = (text, label) => `<span class="info" tabindex="0" role="button" aria-label="${esc(label)}" data-info="${esc(text)}">?</span>`;
@@ -344,6 +344,11 @@ function zeigeListe() {
     (ansicht === "alle" || (ansicht === "liste" ? DRIN.has(r.status) : !DRIN.has(r.status))) &&
     (!fst || (DRIN.has(r.status) && (fst === "ueberfaellig" ? fristInfo(r, zustand).ueber : (normStatus(zustand.erg[r.id]) || "geplant") === fst)));
   const oben = drin.filter(passt), unten = sortiert.filter((r) => !DRIN.has(r.status)).filter(passt);
+  const fsort = $("#f-sort").value;
+  if (fsort !== "chance") {   // nur die Reihenfolge der Anzeige ändert sich, nicht welche 80 offeriert werden
+    const schluessel = fsort === "erwartet" ? (r) => r.erwartet : (r) => r.wert;
+    [oben, unten].forEach((liste) => liste.sort((a, b) => schluessel(b) - schluessel(a) || a.rang - b.rang));
+  }
   $("#liste-wrap").hidden = modus === "board"; $("#board").hidden = modus !== "board";
   $("#ansicht").hidden = modus === "board";
   if (modus === "board") { zeigeBoard(drin.filter(passt)); return; }
@@ -835,7 +840,7 @@ $("#ansicht").addEventListener("click", (e) => {
   const b = e.target.closest("button"); if (!b) return;
   $$("#ansicht button").forEach((x) => { x.classList.toggle("an", x === b); x.setAttribute("aria-pressed", x === b); }); zeigeListe();
 });
-["#kap", "#entd", "#f-typ", "#suche", "#pilotmodus", "#f-status"].forEach((s) => $(s).addEventListener("input", () => { if (!quartal.rows.length) return; zeigeListe(); speichere(); }));
+["#kap", "#entd", "#f-typ", "#suche", "#pilotmodus", "#f-status", "#f-sort"].forEach((s) => $(s).addEventListener("input", () => { if (!quartal.rows.length) return; zeigeListe(); speichere(); }));
 $("#quartal-wahl").addEventListener("change", (e) => zeigeQuartal(e.target.value));
 ["#kap", "#entd", "#pilotmodus"].forEach((s) => $(s).addEventListener("change", () => {
   if (!darf("einstellen")) return;

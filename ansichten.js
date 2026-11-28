@@ -60,17 +60,18 @@ function zeigeKompakt(oben, unten, ansicht, kap) {
       <td class="voll"><span class="nur-klein klein">Priorität ${r.rang} · </span><button class="link gem-name" type="button" data-detail="${esc(r.id)}">${name}</button> <span class="klein">${esc(r.kanton || "")}</span>${platz}
         <span class="meta">${chip(r.gemeindetyp)} ${esc(r.produktlinie)} · ${r.bestandskunde === "ja" ? "Bestandskunde" : "Neukunde"} · ${esc(zustaendig(r))}</span></td>
       <td data-label="Chance">${chanceBalken(r.chance)}</td>
+      <td data-label="Offertwert">${rundCHF(r.wert).replace("rund ", "")}<span class="meta">Wert × Chance: ${rundCHF(r.erwartet).replace("rund ", "")}</span></td>
       <td class="begr voll" data-label="Warum?">${esc(grund(r))}${hinweise(r).length ? `<span class="warnzeile">⚠ ${hinweise(r).length === 1 ? esc(hinweise(r)[0]) : hinweise(r).length + " Hinweise – siehe Details"}</span>` : ""}</td>
       <td class="voll" data-label="Status">${status}</td>
       <td class="nur-gross"><button class="mini" type="button" data-detail="${esc(r.id)}" aria-label="Details ${name}">Details</button></td>
     </tr>`;
   };
-  const sp = 6;
+  const sp = 7;
   const schnitt = `<tr class="schnitt"><td colspan="${sp}"><div>Schnitt bei ${kap} Offerten – darunter bekommt jeder Fall einen Weg, keiner fällt durch</div></td></tr>`;
   const leer = !oben.length && !unten.length
     ? `<tr class="leer"><td colspan="${sp}">Keine Opportunität passt zu diesen Filtern. <button class="mini" type="button" id="filter-zurueck">Filter zurücksetzen</button></td></tr>` : "";
   $("#liste").classList.add("kompakt");
-  $("#liste").innerHTML = `<thead><tr><th scope="col">Prio.</th><th scope="col">Gemeinde</th><th scope="col">Chance</th><th scope="col">Warum?</th><th scope="col">Status</th><th scope="col"><span class="sr-only">Details</span></th></tr></thead><tbody>`
+  $("#liste").innerHTML = `<thead><tr><th scope="col">Prio.</th><th scope="col">Gemeinde</th><th scope="col">Chance</th><th scope="col">Offertwert<span class="th-sub">5 Jahre, geschätzt</span></th><th scope="col">Warum?</th><th scope="col">Status</th><th scope="col"><span class="sr-only">Details</span></th></tr></thead><tbody>`
     + oben.map(zeile).join("") + (ansicht === "alle" && oben.length && unten.length ? schnitt : "") + unten.map(zeile).join("") + leer + "</tbody>";
 }
 
