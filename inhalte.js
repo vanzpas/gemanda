@@ -160,11 +160,6 @@ window.INHALT = {
 
   // Kurze Einführung pro Rolle (erscheint beim ersten Besuch, jederzeit über «So funktioniert's»)
   hilfe: {
-    am: ["Account Manager", [
-      "<b>Übersicht</b> zeigt eure Aufgaben: offene Vorauswahl, eure Offerten in Arbeit und was zuletzt entschieden wurde.",
-      "<b>Vorauswahl:</b> Zu Beginn des Quartals markiert ihr in eurer Region, was ihr offerieren würdet. Die Liste mit den Chancen seht ihr erst danach.",
-      "<b>Gemeinde suchen</b> öffnet das Profil: Typ, Produkte, laufende Offerten – ideal vor einem Termin.",
-    ]],
     ot: ["Offert-Team", [
       "<b>Übersicht</b> zeigt, was überfällig ist und was in den nächsten zwei Wochen fällig wird.",
       "<b>Board</b> in der Offertliste: eine Karte pro Offerte. Mit «Weiter →» rückt sie in den nächsten Schritt.",
@@ -173,11 +168,11 @@ window.INHALT = {
     vl: ["Vertriebsleitung", [
       "<b>Übersicht</b> zeigt, was euren Entscheid braucht: Freigaben, Verzug, Einwände der Account Manager.",
       "<b>Offertliste:</b> Kapazität und Plätze für Neukunden einstellen, die Liste freigeben und das Quartal abschliessen.",
-      "<b>Pilotjahr:</b> das ausführliche Cockpit mit Entscheidungsregel und Bericht für die Geschäftsleitung.",
+      "<b>Übersicht:</b> dazu das Pilotjahr im Detail – Fortschritt pro Quartal, Liste gegen Erfahrung, Verlauf und Bericht.",
     ]],
     gl: ["Geschäftsleitung", [
       "<b>Übersicht:</b> ein Satz, drei Zahlen und eine Ampel – liegt der Pilot im Plan?",
-      "<b>Pilotjahr:</b> Fortschritt pro Quartal, Vergleich Liste gegen Erfahrung und der Bericht zum Drucken.",
+      "<b>Offertliste und Gemeinden</b> sehen für alle gleich aus – nur die Übersicht ist auf euch zugeschnitten. Den Bericht druckt ihr in der Übersicht.",
       "<b>So rechnet der Radar:</b> woher die Zahlen kommen und wo ihre Grenzen liegen.",
     ]],
   },
@@ -185,7 +180,7 @@ window.INHALT = {
   // So läuft das Pilotjahr (Cockpit)
   pilotSchritte: [
     "<b>Ein Jahr, vier Quartale:</b> Q1 bis Q4 2027, je 80 Offerten – rund 320 Offerten. Das reicht, damit Zufallsschwankungen (etwa ±5 Aufträge pro Quartal) den Vergleich nicht verdecken, und auch spät entscheidende Gemeinden fliessen ein.",
-    "<b>Vorauswahl:</b> Zu Beginn jedes Quartals markiert jeder Account Manager in seiner Region, welche Opportunitäten er offerieren würde. Die Liste mit den Gewinnchancen bleibt für ihn gesperrt, bis er abgegeben hat.",
+    "<b>Vorauswahl:</b> Zu Beginn jedes Quartals markiert jeder Account Manager in seiner Region, welche Opportunitäten er offerieren würde. Er wählt, bevor er die Liste mit den Gewinnchancen sieht; im Betrieb regelt das sein Login. Im MVP simuliert der Demo-Stand diese Vorauswahl.",
     "<b>Freigabe:</b> Die Vertriebsleitung gibt die 80 Offerten frei. Danach ist die Liste fix; Änderungen nur mit Begründung, alles wird im Verlauf protokolliert.",
     "<b>Pilotmodus:</b> 10 Entdeckungsplätze für Neukunden bleiben reserviert. Fälle, die Liste und AM beide wählen, werden offeriert; die übrigen Plätze teilen sich je zur Hälfte «nur Liste» und «nur AM».",
     "Jede Offerte hat einen Status: <b>Geplant → In Bearbeitung → Offeriert → Gewonnen oder Verloren</b>. Das Offert-Team pflegt ihn laufend; das Cockpit zeigt den Stand für Team und Geschäftsleitung.",

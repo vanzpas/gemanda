@@ -393,6 +393,9 @@ dialog.seitenblatt textarea{width:100%;margin-top:6px}
 /* Übersicht */
 .start-kopf{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap}
 .start-kopf h2{margin:0}.start-kopf p{margin:0}
+.start-kopf{margin-bottom:12px}
+.rolle-wahl{display:flex;flex-direction:column;gap:2px}
+.rolle-wahl select{font-size:20px;font-weight:700;min-height:44px;padding:4px 36px 4px 10px;color:var(--text)}
 .suche-gross input{min-width:300px}
 .fazit{display:flex;gap:12px;align-items:flex-start;background:var(--flaeche);border:1px solid var(--linie);border-left:6px solid #8a96a3;border-radius:var(--r-m);padding:16px 18px;margin:14px 0 18px;box-shadow:var(--schatten)}
 .fazit p{margin:0;font-size:18px;line-height:1.45}
@@ -417,7 +420,8 @@ dialog.seitenblatt textarea{width:100%;margin-top:6px}
 
 @media (max-width:1024px){.board{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:760px){
-  .kopf-rechts{width:100%;padding-bottom:6px}.kopf-rechts .rolle{flex:1}
+  .kopf-rechts{width:100%;padding-bottom:6px}
+  .rolle-wahl,.rolle-wahl select{width:100%}
   .board{grid-template-columns:1fr}
   .drei-kacheln{grid-template-columns:1fr}
   .suche-gross,.suche-gross input{width:100%;min-width:0}
@@ -448,7 +452,7 @@ details.daten[open] summary{border-bottom:1px solid var(--linie)}
 #cockpit:empty{display:none}
 @media (max-width:760px){.daten-inhalt{grid-template-columns:1fr}.demo-knoepfe{flex-basis:100%}.demo-knopf{flex:1 1 45%}}
 @media print{.demo-leiste,details.daten{display:none}
-  body.druck-cockpit #tab-start{display:block!important}body.druck-cockpit .start-kopf label,body.druck-cockpit #start .aufgabe-rechts button{display:none}}
+  body.druck-cockpit #tab-start{display:block!important}body.druck-cockpit .start-kopf .suche-gross,body.druck-cockpit #start .aufgabe-rechts button{display:none}}
 .regler input[type=checkbox]{width:18px;height:18px;min-height:0;padding:0;text-align:left}
 
 /* Menü «Demo-Stand» im Kopf */
@@ -465,3 +469,6 @@ details.daten[open] summary{border-bottom:1px solid var(--linie)}
 .demo-pop .demo-hinweis{margin:10px 0 0}
 @media (max-width:760px){.demo-pop{position:fixed;left:12px;right:12px;top:auto;width:auto;max-height:80vh;overflow:auto}}
 @media print{.demo-menue{display:none}}
+
+/* Vorauswahl der Account Manager in der Übersicht */
+.aufruf.erledigt{background:var(--gruen-h);border-color:var(--gruen-rand);border-left-color:var(--gruen)}

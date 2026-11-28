@@ -7,7 +7,7 @@
 <meta name="theme-color" content="#0b3a5c">
 <title>GovTech-Marktradar · Gemanda</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b3a5c'/%3E%3Ccircle cx='16' cy='16' r='9' fill='none' stroke='%23fff' stroke-width='2'/%3E%3Ccircle cx='16' cy='16' r='4' fill='none' stroke='%23fff' stroke-width='2'/%3E%3Cpath d='M16 16 L24 9' stroke='%23c9962b' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="style.css?v=14">
+<link rel="stylesheet" href="style.css?v=18">
 </head>
 <body>
 <a class="skip" href="#inhalt">Zum Inhalt springen</a>
@@ -23,7 +23,6 @@
       </div>
     </div>
     <div class="kopf-rechts">
-      <label class="rolle" for="rolle-wahl"><span>Ansicht als</span><select id="rolle-wahl"></select></label>
       <div class="demo-menue">
         <button class="hilfe-knopf demo-auswahl" id="demo-knopf" type="button" aria-expanded="false" aria-controls="demo-pop" aria-haspopup="true">Demo-Stand</button>
         <div class="demo-pop" id="demo-pop" hidden></div>
@@ -42,6 +41,10 @@
 <main id="inhalt" tabindex="-1">
 <!-- ============================ ÜBERSICHT ============================ -->
 <section id="tab-start" class="tab aktiv" role="tabpanel" aria-labelledby="t-start">
+  <div class="start-kopf">
+    <label class="rolle-wahl" for="rolle-wahl"><span class="klein">Übersicht für</span><select id="rolle-wahl" class="feld"></select></label>
+    <label class="suche-gross"><span class="sr-only">Gemeinde suchen</span><input type="search" id="start-suche" class="feld" list="gemeinde-liste" placeholder="Gemeinde suchen – Profil öffnen"></label>
+  </div>
   <div id="start"><div class="lade">Daten werden geladen …</div></div>
   <div id="cockpit"></div>
 </section>
@@ -205,8 +208,8 @@
 <!-- Einführung pro Rolle -->
 <dialog id="hilfe" aria-labelledby="hilfe-titel"><div id="hilfe-inhalt"></div></dialog>
 
-<script src="inhalte.js?v=14"></script>
-<script src="app.js?v=14"></script>
-<script src="ansichten.js?v=14"></script>
+<script src="inhalte.js?v=18"></script>
+<script src="app.js?v=18"></script>
+<script src="ansichten.js?v=18"></script>
 </body>
 </html>

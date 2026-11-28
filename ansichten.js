@@ -108,7 +108,7 @@ function oeffneDetail(q, id, nurNeu = false) {
   const drin = DRIN.has(r.status), st = normStatus(z.erg[r.id]), fi = fristInfo(r, z), aktuell = q === quartal.name;
   const T = I.typen[r.gemeindetyp], bfs = r.bfs_nr || GEM.find((g) => g.name === r.gemeindename)?.bfs;
   const notizen = z.notiz?.[r.id] || [], verlauf = (z.log || []).filter((l) => l.id === r.id).slice().reverse();
-  const kannNotiz = rolle.typ !== "gl" && z.phase !== "abgeschlossen";
+  const kannNotiz = z.phase !== "abgeschlossen";
   const amKnopf = !aktuell || r.stadt || !darf("reinraus", r) ? "" : drin
     ? `<button class="knopf sek klein-k" type="button" data-act="raus" data-id="${esc(r.id)}">Herausnehmen …</button>`
     : z.over[r.id] === "raus" ? `<button class="knopf sek klein-k" type="button" data-act="zurueck" data-id="${esc(r.id)}">Zurücknehmen</button>`
@@ -242,9 +242,7 @@ function zeigeStart() {
   const meine = (r) => rolle.typ !== "am" || zustaendig(r) === rolle.am;
   const offen = k.alle.filter((r) => meine(r) && (r.st === "" || r.st === "bearbeitung" || r.st === "offeriert") && r.z.phase === "freigegeben");
   const sortFrist = (a, b) => (fristInfo(a, a.z).tage ?? 999) - (fristInfo(b, b.z).tage ?? 999) || b.chance - a.chance;
-  const kopf = `<div class="start-kopf"><div><p class="klein">Übersicht für</p><h2>${esc(rolleText())}</h2></div>
-    <label class="suche-gross"><span class="sr-only">Gemeinde suchen</span><input type="search" id="start-suche" class="feld" list="gemeinde-liste" placeholder="Gemeinde suchen – Profil öffnen"></label></div>
-    ${lies("radar:stand") ? `<p class="klein">Demo-Stand ${esc(lies("radar:stand"))} – simulierter Ablauf.</p>` : ""}
+  const kopf = `${lies("radar:stand") ? `<p class="klein">Demo-Stand ${esc(lies("radar:stand"))} – simulierter Ablauf.</p>` : ""}
     <div class="fazit" style="border-left-color:${k.ampel ? k.ampel[0] : "#8a96a3"}">${k.ampel ? `<span class="ampel-punkt" style="background:${k.ampel[0]}"></span>` : ""}<p>${esc(fazitSatz(k, Q))}</p></div>`;
   let inhalt = "";
 
@@ -265,8 +263,10 @@ function zeigeStart() {
       <div class="karte"><b class="t">Was braucht einen Entscheid?</b>${entscheide.length ? `<ul class="liste-einfach">${entscheide.join("")}</ul>` : '<p class="klein">Zurzeit nichts – der Pilot läuft nach Plan.</p>'}</div>
       ${t === "vl" ? `<div class="karte"><b class="t">Einwände der Account Manager</b>${(() => { const e = Q.flatMap((q) => (q.z.log || []).filter((l) => l.was === "Herausgenommen" || l.was === "Hinzugefügt").map((l) => ({ ...l, q: q.name }))).sort((a, b) => (b.n || 0) - (a.n || 0)).slice(0, 5);
           return e.length ? `<ul class="liste-einfach">${e.map((l) => `<li><b>${esc(l.was)}</b> ${esc(l.text)} <span class="klein">· ${esc(l.wer)} · ${esc(l.q)}</span></li>`).join("")}</ul>` : '<p class="klein">Keine – die Account Manager folgen der Liste.</p>'; })()}</div>`
-        : `<div class="karte"><b class="t">Entscheidungsregel</b><p style="margin:0">${esc(I.entscheidRegel.text)}</p></div>`}
+        : `<div class="karte"><b class="t">Entscheidungsregel</b><p style="margin:0 0 10px">${esc(I.entscheidRegel.text)}</p>
+            <span style="font-weight:700;color:${regel === null || k.L.n < 30 || k.A.n < 30 ? "#c9962b" : regel >= I.entscheidRegel.vorsprung ? "#1a8a5f" : "#b3261e"}">● ${regel === null ? "noch kein Vergleich möglich" : k.L.n < 30 || k.A.n < 30 ? "Zwischenstand – noch zu wenige entschiedene Fälle" : regel >= I.entscheidRegel.vorsprung ? "Zwischenstand erfüllt" : "Zwischenstand nicht erfüllt"}</span></div>`}
     </div>
+    ${t === "gl" ? `<p><button class="knopf sek" type="button" id="bericht-gl">Bericht für die Geschäftsleitung drucken</button></p>` : ""}
     ${t === "vl" && k.ueber.length ? `<h3>Überfällige Offerten</h3><ul class="aufgaben">${k.ueber.sort(sortFrist).slice(0, 6).map((r) => aufgabe(r, r.q, r.z)).join("")}</ul>` : ""}
 `;
   } else if (t === "ot") {
@@ -279,17 +279,6 @@ function zeigeStart() {
     <h3>Überfällig und in den nächsten 14 Tagen fällig</h3>
     ${dringend.length ? `<ul class="aufgaben">${dringend.slice(0, 10).map((r) => aufgabe(r, r.q, r.z)).join("")}</ul>` : '<p class="klein">Nichts dringend.</p>'}
     <p><button class="knopf" type="button" data-zum="board">Zum Board</button></p>`;
-  } else {   // Account Manager
-    const vor = Q.filter((q) => q.z.phase === "vorauswahl" && !q.z.abgabe?.[rolle.am]);
-    const entschieden = k.alle.filter((r) => meine(r) && (r.st === "gewonnen" || r.st === "verloren"))
-      .sort((a, b) => sortQ(b.q) - sortQ(a.q)).slice(0, 6);
-    inhalt = `${vor.map((q) => { const n = (lies("radar:rows:" + q.name) || []).map(rechne).filter((r) => zustaendig(r) === rolle.am && !r.stadt).length;
-        return `<div class="aufruf"><div><b>Vorauswahl ${esc(q.name)} offen</b><br><span class="klein">${n} Opportunitäten in eurer Region warten auf eure Einschätzung.</span></div>
-          <button class="knopf" type="button" data-oeffne-q="${esc(q.name)}">Jetzt wählen</button></div>`; }).join("")}
-    <h3>Meine Offerten in Arbeit <span class="anzahl">${offen.length}</span></h3>
-    ${offen.length ? `<ul class="aufgaben">${offen.sort(sortFrist).slice(0, 12).map((r) => aufgabe(r, r.q, r.z)).join("")}</ul>` : '<p class="klein">Zurzeit keine Offerte in Arbeit.</p>'}
-    <h3>Zuletzt entschieden</h3>
-    ${entschieden.length ? `<ul class="aufgaben">${entschieden.map((r) => aufgabe(r, r.q, r.z)).join("")}</ul>` : '<p class="klein">Noch nichts entschieden.</p>'}`;
   }
   $("#start").innerHTML = kopf + inhalt;
   zeigeCockpit();
@@ -328,7 +317,7 @@ $("#demo-pop").addEventListener("click", async (e) => {
   }
   if (e.target.id === "zuruecksetzen") { demoMenue(false); if (await setzeZurueck()) { zeigeDemoLeiste(); zeigeStart(); } }
 });
-$("#start").addEventListener("change", (e) => {
+$("#tab-start").addEventListener("change", (e) => {
   if (e.target.id !== "start-suche") return;
   const m = /^(.*) \(([A-Z]{2})\)$/.exec(e.target.value.trim());
   const g = m ? GEM.find((x) => x.name === m[1] && x.kanton === m[2]) : GEM.find((x) => x.name.toLowerCase() === e.target.value.trim().toLowerCase());
@@ -342,7 +331,7 @@ function zeigeHilfe(erzwingen) {
   const [titel, schritte] = I.hilfe[rolle.typ];
   $("#hilfe-inhalt").innerHTML = `<form method="dialog"><p class="klein">So funktioniert's</p><h2 id="hilfe-titel">Der Radar für ${esc(titel)}</h2>
     <ol class="hilfe-schritte">${schritte.map((s) => `<li>${s}</li>`).join("")}</ol>
-    <p class="klein">Die Rolle wählt ihr oben unter «Ansicht als». Im Betrieb ergibt sie sich aus dem Login.</p>
+    <p class="klein">Die Rolle wählt ihr in der Übersicht oben links («Übersicht für»). Sie ändert nur die Übersicht – Offertliste, Gemeinden und «So rechnet der Radar» sind für alle gleich. Im Betrieb ergibt sich die Rolle aus dem Login.</p>
     <div class="knoepfe"><button class="knopf" type="submit">Verstanden</button></div></form>`;
   schreib(schluessel, true);
   const d = $("#hilfe"); if (!d.open) d.showModal();
@@ -364,6 +353,7 @@ document.addEventListener("click", (e) => {
     aktualisiereAlles();
     return;
   }
+  if (e.target.id === "bericht-gl") { document.body.classList.add("druck-cockpit"); print(); document.body.classList.remove("druck-cockpit"); return; }
   const oq = e.target.closest("[data-oeffne-q]");
   if (oq) { zeigeQuartal(oq.dataset.oeffneQ); waehleTab($("#t-liste")); scrollTo(0, 0); return; }
   const zum = e.target.closest("[data-zum]");

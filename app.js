@@ -46,22 +46,24 @@ function zustandVon(name) {
 }
 
 // ------------------------------------------------------------ Rollen (Stufe A: simuliert, ohne Login)
+// Übersicht für Vertriebsleitung, Offert-Team oder Geschäftsleitung (ältere Stände mit AM-Rolle → Vertriebsleitung)
 let rolle = lies("radar:rolle") || { typ: "vl", am: "" };
+if (!["vl", "ot", "gl"].includes(rolle.typ)) rolle = { typ: "vl", am: "" };
 const REGION_VON = Object.fromEntries(I.regionen.flatMap(([n, k]) => k.map((x) => [x, n])));
 const zustaendig = (r) => (r.einwohner > I.keyAccountAb ? "Key Account" : REGION_VON[r.kanton] || "Key Account");
 const rolleText = () => rolle.typ === "am" ? `AM ${rolle.am}` : I.rollen[rolle.typ];
 const istMeins = (r) => rolle.typ !== "am" || zustaendig(r) === rolle.am;
-// Wer darf was? (im Betrieb übernimmt das das Login mit Rechten – Stufe B)
+// Was ist in welcher Phase möglich? Offertliste, Gemeinden und Hintergrund sind für alle Anspruchsgruppen gleich;
+// wer was darf, regelt im Betrieb das Login (Stufe B). Nur die Vorauswahl gehört einem Account Manager.
 function darf(aktion, r, z = zustand) {
-  const t = rolle.typ, ph = z.phase;
+  const ph = z.phase;
   switch (aktion) {
-    case "einstellen": return t === "vl" && ph === "vorauswahl";
-    case "freigeben": return t === "vl" && ph === "vorauswahl";
-    case "abschliessen": return t === "vl" && ph === "freigegeben";
-    case "hochladen": return t === "vl";
-    case "vorauswahl": return t === "am" && ph === "vorauswahl" && !z.abgabe[rolle.am] && (!r || istMeins(r));
-    case "reinraus": return ph !== "abgeschlossen" && (t === "vl" || (t === "am" && ph === "vorauswahl" && (!r || istMeins(r))));
-    case "status": return ph === "freigegeben" && (t === "ot" || t === "vl" || (t === "am" && (!r || istMeins(r))));
+    case "einstellen": case "freigeben": return ph === "vorauswahl";
+    case "abschliessen": return ph === "freigegeben";
+    case "hochladen": return true;
+    case "vorauswahl": return rolle.typ === "am" && ph === "vorauswahl" && !z.abgabe[rolle.am] && (!r || istMeins(r));
+    case "reinraus": return ph !== "abgeschlossen";
+    case "status": return ph === "freigegeben";
     default: return false;
   }
 }
@@ -72,7 +74,7 @@ function protokolliere(z, was, text = "", id = "") {
   if (z.log.length > 2000) z.log.splice(0, z.log.length - 2000);
 }
 // AM sieht die Liste erst nach seiner Vorauswahl
-const listeGesperrt = () => rolle.typ === "am" && zustand.phase === "vorauswahl" && !zustand.abgabe[rolle.am];
+const listeGesperrt = () => false;   // Vorauswahl der AM läuft in der Übersicht; im Betrieb sperrt das Login die Liste bis zur Abgabe
 const PFLICHT = ["gemeindename", "einwohner", "produktlinie", "quelle", "verfahren", "bestandskunde", "kontakte_12m", "sprachregion"];
 const WERTE = {
   gemeindetyp: ["A", "B", "C", "D"],
@@ -398,7 +400,7 @@ function zeigePhase() {
   let text = "", knoepfe = "";
   if (z.phase === "vorauswahl") {
     text = `${abg} von ${n} Account Managern haben ihre Vorauswahl abgegeben.`;
-    if (rolle.typ === "am") text = z.abgabe[rolle.am] ? `Eure Vorauswahl (${esc(rolle.am)}) ist abgegeben am ${datum(z.abgabe[rolle.am])}. ${text}` : `Wählt zuerst eure Fälle – die Liste ist bis dahin gesperrt.`;
+    text += " Im Betrieb geben die Account Manager ihre Vorauswahl über ihr Login ab und sehen die Liste erst danach; im MVP simuliert der Demo-Stand diese Vorauswahl.";
     if (darf("freigeben")) knoepfe = `<button class="knopf" type="button" id="freigeben">Liste freigeben</button>`;
   } else if (z.phase === "freigegeben") {
     const f = (z.log || []).find((l) => l.was === "Freigabe");
@@ -657,7 +659,7 @@ function zeigeCockpit() {
   const laufend = alle.filter((r) => !fz || zustaendig(r) === (fz === "meine" ? rolle.am : fz)).filter((r) => fst === "offen" ? (r.st === "bearbeitung" || r.st === "offeriert") : fst === "alle" ? true : (r.st || "geplant") === fst)
     .sort((a, b) => sortQ(a.q) - sortQ(b.q) || b.chance - a.chance);
 
-  if (rolle.typ === "am" || !Q.length) { $("#cockpit").innerHTML = ""; return; }
+  if (rolle.typ !== "vl" || !Q.length) { $("#cockpit").innerHTML = ""; return; }
   $("#cockpit").innerHTML = `
     <div class="cockpit-kopf"><h3>Pilotjahr im Detail</h3>
       <button class="knopf sek klein-k" type="button" id="bericht">Bericht für die Geschäftsleitung drucken</button></div>
@@ -849,22 +851,16 @@ $("#quartal-wahl").addEventListener("change", (e) => zeigeQuartal(e.target.value
 }));
 ["#f-zust"].forEach((s) => $(s).addEventListener("input", () => quartal.rows.length && zeigeListe()));
 
-// Rolle wechseln («Ansicht als») – im Betrieb ergibt sich die Rolle aus dem Login
+// Rolle wechseln («Übersicht für») – im Betrieb ergibt sich die Rolle aus dem Login
 function baueRollenwahl() {
-  $("#rolle-wahl").innerHTML = `<optgroup label="Leitung und Team">${["vl", "ot", "gl"].map((t) => `<option value="${t}">${I.rollen[t]}</option>`).join("")}</optgroup>
-    <optgroup label="Account Manager">${I.regionen.map(([n]) => `<option value="am:${esc(n)}">AM ${esc(n)}</option>`).join("")}</optgroup>`;
-  $("#rolle-wahl").value = rolle.typ === "am" ? "am:" + rolle.am : rolle.typ;
-  $("#f-zust").innerHTML = `<option value="">Alle Regionen</option>${rolle.typ === "am" ? `<option value="meine">Meine Region (${esc(rolle.am)})</option>` : ""}
-    ${I.regionen.map(([n]) => `<option value="${esc(n)}">${esc(n)}</option>`).join("")}`;
-  $("#f-zust").value = rolle.typ === "am" ? "meine" : "";
+  $("#rolle-wahl").innerHTML = ["vl", "ot", "gl"].map((t) => `<option value="${t}">${I.rollen[t]}</option>`).join("");
+  $("#rolle-wahl").value = rolle.typ;
+  if (!$("#f-zust").options.length) $("#f-zust").innerHTML = `<option value="">Alle Regionen</option>${I.regionen.map(([n]) => `<option value="${esc(n)}">${esc(n)}</option>`).join("")}`;
   document.body.dataset.rolle = rolle.typ;
-  // Register pro Rolle: Die Geschäftsleitung braucht die Arbeitsliste nicht
-  $("#t-liste").hidden = rolle.typ === "gl";
-  if (rolle.typ === "gl" && $("#t-liste").getAttribute("aria-selected") === "true") waehleTab($("#t-start"));
 }
 $("#rolle-wahl").addEventListener("change", (e) => {
   const v = e.target.value;
-  rolle = v.startsWith("am:") ? { typ: "am", am: v.slice(3) } : { typ: v, am: "" };
+  rolle = { typ: v, am: "" };
   schreib("radar:rolle", rolle);
   baueRollenwahl();
   if (quartal.rows.length) zeigeListe();
